@@ -2,7 +2,7 @@
 
 export const dynamic = 'force-dynamic'
 
-import React, { useEffect, useState } from 'react'
+import React, { Suspense, useEffect, useState } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -47,7 +47,15 @@ const STEPS = [
   { id: 5, title: 'Review & Submit' }
 ]
 
-export default function AddEmployeePage() {
+export default function AddEmployeePageWrapper() {
+  return (
+    <Suspense fallback={<MainLayout><div className="flex items-center justify-center h-96"><Loader2 className="w-8 h-8 animate-spin text-[#1e3a5f]" /></div></MainLayout>}>
+      <AddEmployeePage />
+    </Suspense>
+  )
+}
+
+function AddEmployeePage() {
   const router = useRouter()
   const searchParams = useSearchParams()
   const candidateId = searchParams.get('candidate_id')
