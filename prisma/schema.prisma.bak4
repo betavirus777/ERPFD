@@ -1,0 +1,2653 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Login {
+  id                     Int                   @id @default(autoincrement())
+  user_id                String                @db.VarChar(50)
+  usertype_master_id     Int?
+  email                  String                @db.VarChar(50)
+  password               String                @db.VarChar(100)
+  google2fa              Int                   @default(0)
+  created_at             DateTime?             @db.Timestamp(0)
+  updated_at             DateTime?             @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?             @db.Timestamp(0)
+  status                 Boolean               @default(true)
+  personal_access_tokens PersonalAccessToken[]
+
+  @@map("login")
+}
+
+model PersonalAccessToken {
+  id             Int       @id @default(autoincrement()) @db.UnsignedInt
+  tokenable_type String    @db.VarChar(255)
+  tokenable_id   Int
+  name           String    @db.VarChar(255)
+  token          String    @db.VarChar(64)
+  abilities      String?   @db.Text
+  last_used_at   DateTime? @db.Timestamp(0)
+  expires_at     DateTime? @db.Timestamp(0)
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @updatedAt @db.Timestamp(0)
+  login          Login     @relation(fields: [tokenable_id], references: [id], onDelete: Cascade, map: "pat_login_fk")
+
+  @@index([tokenable_id], map: "pat_login_fk")
+  @@map("personal_access_tokens")
+}
+
+model PasswordResetToken {
+  id         Int       @id @default(autoincrement())
+  email      String    @db.VarChar(35)
+  token      String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  status     Boolean   @default(true)
+
+  @@map("password_reset_tokens")
+}
+
+model LoginPasswordHistory {
+  id         Int       @id @default(autoincrement())
+  login_id   String    @db.VarChar(50)
+  password   String    @db.VarChar(100)
+  created_at DateTime? @db.Timestamp(0)
+
+  @@map("login_password_history")
+}
+
+model EmployeeSecretkey {
+  id         Int       @id @default(autoincrement())
+  secretkey  String    @db.VarChar(100)
+  uid        String    @db.VarChar(50)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime? @updatedAt @db.Timestamp(0)
+
+  @@map("employee_secretkey")
+}
+
+model OtpLog {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    String    @db.VarChar(255)
+  email      String    @db.VarChar(255)
+  otp        String    @db.VarChar(255)
+  created_at DateTime? @db.Timestamp(0)
+  ip_address String    @db.VarChar(255)
+
+  @@map("otp_logs")
+}
+
+model LoginLog {
+  id                  Int       @id @default(autoincrement())
+  login_email         String?   @db.VarChar(50)
+  login_url           String?   @db.VarChar(100)
+  logged_in_date_time DateTime? @db.DateTime(0)
+  google2fa           Boolean   @default(false)
+  browser             String    @db.VarChar(150)
+  ip_address          String    @db.VarChar(50)
+  login_status        Boolean   @default(false)
+  created_at          DateTime? @default(now()) @db.Timestamp(0)
+  updated_at          DateTime? @default(now()) @updatedAt @db.Timestamp(0)
+
+  @@map("login_logs")
+}
+
+model Organisation {
+  id                                    Int              @id @default(autoincrement())
+  organization_name                     String           @db.VarChar(50)
+  organization_logo                     String?          @db.VarChar(50)
+  organization_address                  String           @db.VarChar(255)
+  city                                  Int?
+  state                                 Int?
+  country                               Int?
+  postal_code                           Int?
+  google_link                           String?          @db.VarChar(50)
+  contact_person                        String?          @db.VarChar(50)
+  contact_number                        Int?
+  mobile_number                         Int?
+  organization_website                  String?          @db.VarChar(100)
+  email                                 String           @db.VarChar(25)
+  fax                                   Int?
+  created_at                            DateTime?        @db.Timestamp(0)
+  updated_at                            DateTime?        @updatedAt @db.Timestamp(0)
+  country_organisation_countryTocountry CountryMaster?   @relation("organisation_countryTocountry", fields: [country], references: [id], onDelete: Cascade, map: "o_country_fk")
+  role_permissions                      RolePermission[]
+
+  @@index([country], map: "o_country_fk")
+  @@map("organisation")
+}
+
+model EmployeeOnboarding {
+  id                              Int                                    @id @default(autoincrement())
+  uid                             String                                 @unique @db.VarChar(50)
+  potential_employee_code         String?                                @db.VarChar(25)
+  employee_code                   String?                                @db.VarChar(20)
+  employee_photo                  String?                                @db.VarChar(100)
+  first_name                      String                                 @db.VarChar(100)
+  last_name                       String                                 @db.VarChar(100)
+  consent_form_id                 Int?
+  designation_master_id           Int
+  phone_number                    String                                 @db.VarChar(15)
+  visa_type                       String                                 @default("") @db.VarChar(255)
+  nationality                     String?                                @db.VarChar(10)
+  temp_address                    String?                                @db.VarChar(100)
+  permanent_address               String?                                @db.VarChar(100)
+  permanent_country               Int?
+  permanent_state_id              Int?                                   @db.UnsignedInt
+  permanent_city_id               Int?                                   @db.UnsignedInt
+  role_master_id                  Int
+  email                           String                                 @db.VarChar(100)
+  dob                             DateTime?                              @db.Date
+  doj                             DateTime                               @db.Date
+  employee_type                   employee_onboarding_employee_type?
+  department                      Int?
+  vendor_id                       Int?
+  potential_candidate_id          Int?
+  personal_email                  String?                                @db.VarChar(100)
+  reporting_to                    String?                                @db.VarChar(50)
+  engagement_method               employee_onboarding_engagement_method?
+  created_at                      DateTime                               @default(now()) @db.Timestamp(0)
+  updated_at                      DateTime                               @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at                      DateTime?                              @db.Timestamp(0)
+  status_master_id                Int                                    @default(1)
+  status                          Boolean                                @default(true)
+  created_by                      String?                                @db.VarChar(100)
+  employee_bank_details           employee_bank_details[]
+  consentForms                    EmployeeConsentForm[]
+  education                       EmployeeEducationDetail[]
+  emergencyContacts               EmployeeEmergencyContact[]
+  experience                      EmployeeExperience[]
+  familyInfo                      EmployeeFamilyInfo[]
+  employee_onboard_document       employee_onboard_document[]
+  employee_onboard_project_detail employee_onboard_project_detail[]
+  cities                          cities?                                @relation(fields: [permanent_city_id], references: [id], onDelete: Cascade, map: "eo_city_fk")
+  country                         CountryMaster?                         @relation(fields: [permanent_country], references: [id], onDelete: Cascade, map: "eo_country_fk")
+  designation_master              DesignationMaster                      @relation(fields: [designation_master_id], references: [id], onDelete: Cascade, map: "eo_designation_master_fk")
+  form_master                     form_master?                           @relation(fields: [consent_form_id], references: [id], onDelete: Cascade, map: "eo_form_master_fk")
+  potential_candidate             PotentialCandidate?                    @relation(fields: [potential_candidate_id], references: [id], onDelete: Cascade, map: "eo_potential_candi_fk")
+  role                            RoleMaster                             @relation(fields: [role_master_id], references: [id], onDelete: Cascade, map: "eo_role_master_fk")
+  states                          states?                                @relation(fields: [permanent_state_id], references: [id], onDelete: Cascade, map: "eo_state_fk")
+  statusMaster                    StatusMaster                           @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "eo_status_master_fk")
+  vendors                         vendors?                               @relation(fields: [vendor_id], references: [id], onDelete: Cascade, map: "eo_vendor_fk")
+  employee_personal_detail        employee_personal_detail[]
+  salaryDetails                   EmployeeSalaryDetails[]
+  opportunity                     Opportunity[]
+  
+  // PROJECT MANAGEMENT MODULE RELATIONS
+  tasksAssigned              Task[]                @relation("TaskAssignee")
+  tasksCreated               Task[]                @relation("TaskCreator")
+  taskComments               TaskComment[]
+  taskAttachments            TaskAttachment[]
+  taskActivities             TaskActivity[]
+  timesheets                 Timesheet[]           @relation("TimesheetEmployee")
+  timesheetsApproved         Timesheet[]           @relation("TimesheetApprover")
+  resourceAllocations        ResourceAllocation[]  @relation("ResourceAllocationEmployee")
+  resourceAllocationsCreated ResourceAllocation[]  @relation("ResourceAllocationCreator")
+  projectTeams               ProjectTeamMember[]
+
+
+  @@index([permanent_city_id], map: "eo_city_fk")
+  @@index([permanent_country], map: "eo_country_fk")
+  @@index([designation_master_id], map: "eo_designation_master_fk")
+  @@index([consent_form_id], map: "eo_form_master_fk")
+  @@index([potential_candidate_id], map: "eo_potential_candi_fk")
+  @@index([role_master_id], map: "eo_role_master_fk")
+  @@index([permanent_state_id], map: "eo_state_fk")
+  @@index([status_master_id], map: "eo_status_master_fk")
+  @@index([vendor_id], map: "eo_vendor_fk")
+  @@map("employee_onboarding")
+}
+
+model EmployeeSalaryDetails {
+  id                           Int                @id @default(autoincrement())
+  employee_onboarding_id       Int
+  allowance_type_id            Int
+  allowance_type_salary_amount Float?             @db.Float
+  allowance_type_currency      Int?
+  created_at                   DateTime           @default(now()) @db.Timestamp(0)
+  updated_at                   DateTime?          @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at                   DateTime?          @db.Timestamp(0)
+  status                       Boolean            @default(true)
+  country                      CountryMaster?     @relation(fields: [allowance_type_currency], references: [id], onDelete: Cascade, map: "esd_currency_fk")
+  employee                     EmployeeOnboarding @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "esd_employee_fk")
+
+  @@index([allowance_type_currency], map: "esd_currency_fk")
+  @@index([employee_onboarding_id], map: "esd_employee_fk")
+  @@map("employee_salary_details")
+}
+
+model EmployeeEmergencyContact {
+  id                     Int                 @id @default(autoincrement())
+  employee_onboarding_id Int?
+  name                   String?             @db.VarChar(50)
+  relationship           String?             @db.VarChar(150)
+  contact_number         String?             @db.VarChar(15)
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  employee               EmployeeOnboarding? @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "eec_employee_fk")
+
+  @@index([employee_onboarding_id], map: "eec_employee_fk")
+  @@map("employee_emergency_contact")
+}
+
+model EmployeeFamilyInfo {
+  id                     Int                 @id @default(autoincrement())
+  employee_onboarding_id Int?
+  name                   String?             @db.VarChar(50)
+  relationship           Int?
+  dob                    DateTime?           @db.Date
+  contact_number         String?             @db.VarChar(15)
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  employee               EmployeeOnboarding? @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "efi_employee_fk")
+
+  @@index([employee_onboarding_id], map: "efi_employee_fk")
+  @@map("employee_family_info")
+}
+
+model EmployeeExperience {
+  id                     Int                 @id @default(autoincrement())
+  employee_onboarding_id Int?
+  company_name           String?             @db.VarChar(50)
+  location               String?             @db.VarChar(50)
+  job_position           String?             @db.VarChar(50)
+  start_date             DateTime?           @db.Date
+  end_date               DateTime?           @db.Date
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  employee               EmployeeOnboarding? @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "ee_employee_fk")
+
+  @@index([employee_onboarding_id], map: "ee_employee_fk")
+  @@map("employee_experience")
+}
+
+model EmployeeEducationDetail {
+  id                     Int                 @id @default(autoincrement())
+  employee_onboarding_id Int?
+  institution            String?             @db.VarChar(50)
+  subject                String?             @db.VarChar(50)
+  start_date             DateTime?           @db.Date
+  end_date               DateTime?           @db.Date
+  degree                 String?             @db.VarChar(50)
+  grade                  String?             @db.VarChar(50)
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  employee               EmployeeOnboarding? @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "eed_employee_fk")
+
+  @@index([employee_onboarding_id], map: "eed_employee_fk")
+  @@map("employee_education_detail")
+}
+
+model EmployeeConsentForm {
+  id                     Int                @id @default(autoincrement())
+  consent_form_id        Int
+  employee_onboarding_id Int
+  sign                   Boolean?
+  sign_date              DateTime?          @db.Timestamp(0)
+  created_at             DateTime?          @db.Timestamp(0)
+  updated_at             DateTime?          @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?          @db.Timestamp(0)
+  status                 Boolean            @default(true)
+  form_master            form_master        @relation(fields: [consent_form_id], references: [id], onDelete: Cascade, map: "ecf_consent_form_fk")
+  employee               EmployeeOnboarding @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "ecf_employee_fk")
+
+  @@index([consent_form_id], map: "ecf_consent_form_fk")
+  @@index([employee_onboarding_id], map: "ecf_employee_fk")
+  @@map("employee_consent_form")
+}
+
+model LeaveMaster {
+  id                Int       @id @default(autoincrement())
+  leave_type        String    @db.VarChar(100)
+  leave_description String?   @db.VarChar(100)
+  max_leave_count   Int
+  upload_documents  String?   @db.VarChar(100)
+  created_at        DateTime  @default(now()) @db.Timestamp(0)
+  updated_at        DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at        DateTime? @db.Timestamp(0)
+  created_by        String?   @db.VarChar(50)
+  updated_by        String?   @db.VarChar(50)
+  status            Boolean   @default(true)
+
+  @@map("leave_master")
+}
+
+model ApplyLeave {
+  id                                            Int       @id @default(autoincrement()) @db.UnsignedInt
+  employee_onboarding_id                        String    @db.VarChar(50)
+  type                                          Int?
+  from_date                                     DateTime  @db.Date
+  to_date                                       DateTime  @db.Date
+  number_of_days                                Int       @db.UnsignedTinyInt
+  description                                   String?   @db.VarChar(200)
+  air_expense_claim_id                          Int?      @db.UnsignedInt
+  status_master_id                              Int?
+  reason_of_cancellation                        Int?
+  created_at                                    DateTime? @db.Timestamp(0)
+  updated_at                                    DateTime? @updatedAt @db.Timestamp(0)
+  deleted_at                                    DateTime? @db.Timestamp(0)
+  status                                        Boolean   @default(true)
+  file_upload                                   String?   @db.VarChar(255)
+  claim_apply_leave_air_expense_claim_idToclaim claim?    @relation("apply_leave_air_expense_claim_idToclaim", fields: [air_expense_claim_id], references: [id], onDelete: Cascade, map: "al_claim_fk")
+  claim_claim_leave_idToapply_leave             claim[]   @relation("claim_leave_idToapply_leave")
+
+  @@index([air_expense_claim_id], map: "al_claim_fk")
+  @@index([status_master_id], map: "al_status_master_fk")
+  @@map("apply_leave")
+}
+
+model PublicHolidayMaster {
+  id           Int       @id @default(autoincrement())
+  holiday_name String    @db.VarChar(50)
+  description  String?   @db.VarChar(50)
+  from_date    DateTime  @db.Date
+  end_date     DateTime? @db.Date
+  created_at   DateTime  @default(now()) @db.Timestamp(0)
+  updated_at   DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at   DateTime? @db.Timestamp(0)
+  created_by   String?   @db.VarChar(50)
+  updated_by   String?   @db.VarChar(50)
+  status       Boolean   @default(true)
+
+  @@map("public_holiday_master")
+}
+
+model RoleMaster {
+  id                                     Int                                      @id @default(autoincrement())
+  role_name                              String                                   @db.VarChar(50)
+  role_description                       String?                                  @db.VarChar(100)
+  organization_id                        Int?
+  created_by                             String?                                  @db.VarChar(50)
+  updated_by                             String?                                  @db.VarChar(50)
+  created_at                             DateTime?                                @db.Timestamp(0)
+  updated_at                             DateTime?                                @updatedAt @db.Timestamp(0)
+  deleted_at                             DateTime?                                @db.Timestamp(0)
+  status_master_id                       Boolean                                  @default(true)
+  clients_personal_details               clients_personal_details[]
+  employees                              EmployeeOnboarding[]
+  project_management_resource_assignment project_management_resource_assignment[]
+  permissions                            RolePermission[]
+  vendor_contact_details                 VendorContactDetails[]
+  widget_role                            widget_role[]
+
+  @@map("role_master")
+}
+
+model TeamMaster {
+  id         Int       @id @default(autoincrement())
+  team_name  String    @db.VarChar(50)
+  status     Boolean   @default(true)
+  created_at DateTime  @default(now()) @db.Timestamp(0)
+  updated_at DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at DateTime? @db.Timestamp(0)
+  created_by String?   @db.VarChar(50)
+  updated_by String?   @db.VarChar(50)
+
+  @@map("team_master")
+}
+
+model DesignationMaster {
+  id                                     Int                                      @id @default(autoincrement())
+  designation_name                       String                                   @db.VarChar(50)
+  status_master_id                       Int                                      @default(1) @db.TinyInt
+  created_at                             DateTime                                 @default(now()) @db.Timestamp(0)
+  updated_at                             DateTime                                 @default(now()) @updatedAt @db.Timestamp(0)
+  updated_by                             String?                                  @db.VarChar(50)
+  deleted_at                             DateTime?                                @db.Timestamp(0)
+  status                                 Boolean                                  @default(true)
+  created_by                             String?                                  @db.VarChar(50)
+  client_resource_rate                   client_resource_rate[]
+  clients_personal_details               clients_personal_details[]
+  employee_onboarding                    EmployeeOnboarding[]
+  opportunity_resource                   opportunity_resource[]
+  service_delivery_partner_resource_rate service_delivery_partner_resource_rate[]
+  vendor_contact_details                 VendorContactDetails[]
+
+  @@map("designation_master")
+}
+
+model StatusMaster {
+  id                                                                                                        Int                                      @id @default(autoincrement())
+  status_name                                                                                               String                                   @db.VarChar(50)
+  description                                                                                               String?                                  @db.VarChar(50)
+  color_code                                                                                                String?                                  @db.VarChar(50)
+  completion_percentage                                                                                     Float?                                   @db.Float
+  module_master_id                                                                                          Int                                      @db.UnsignedInt
+  created_at                                                                                                DateTime                                 @default(now()) @db.Timestamp(0)
+  updated_at                                                                                                DateTime                                 @default(now()) @updatedAt @db.Timestamp(0)
+  deleted_at                                                                                                DateTime?                                @db.Timestamp(0)
+  created_by                                                                                                String?                                  @db.VarChar(50)
+  updated_by                                                                                                String?                                  @db.VarChar(50)
+  status                                                                                                    Boolean?                                 @default(true)
+  claim                                                                                                     claim[]
+  employee_onboard_document                                                                                 employee_onboard_document[]
+  employee_onboard_project_detail                                                                           employee_onboard_project_detail[]
+  employees                                                                                                 EmployeeOnboarding[]
+  opportunity                                                                                               Opportunity[]
+  opportunity_mode_of_engagement                                                                            opportunity_mode_of_engagement[]
+  opportunity_stage_notes_opportunity_stage_notes_opportunity_stage_notes_current_status_idTostatus_master  opportunity_stage_notes[]                @relation("opportunity_stage_notes_opportunity_stage_notes_current_status_idTostatus_master")
+  opportunity_stage_notes_opportunity_stage_notes_opportunity_stage_notes_previous_status_idTostatus_master opportunity_stage_notes[]                @relation("opportunity_stage_notes_opportunity_stage_notes_previous_status_idTostatus_master")
+  potential_candidate                                                                                       PotentialCandidate[]
+  project_expense                                                                                           ProjectExpense[]
+  project_management                                                                                        ProjectManagement[]
+  project_milestones                                                                                        project_milestones[]
+  project_sales_delivery_partner_invoice                                                                    project_sales_delivery_partner_invoice[]
+  project_task                                                                                              ProjectTask[]
+  sales_expense                                                                                             sales_expense[]
+  sales_invoice                                                                                             sales_invoice[]
+
+  @@map("status_master")
+}
+
+model ModuleMaster {
+  id                     Int                      @id @default(autoincrement()) @db.UnsignedInt
+  module_name            String?                  @db.VarChar(50)
+  description            String?                  @db.VarChar(100)
+  sub_module             Int?                     @db.UnsignedInt
+  parent_module_id       Int?                     @db.UnsignedInt
+  created_by             String?                  @db.VarChar(50)
+  updated_by             String?                  @db.VarChar(50)
+  created_at             DateTime?                @db.Timestamp(0)
+  updated_at             DateTime?                @updatedAt @db.Timestamp(0)
+  deleted_at             DateTime?                @db.Timestamp(0)
+  status                 Boolean                  @default(true)
+  code_generation_master code_generation_master[]
+  permissions            Permission[]
+
+  @@map("module_master")
+}
+
+model CountryMaster {
+  id                                                                                                 Int                                            @id @default(autoincrement())
+  country_name                                                                                       String?                                        @db.VarChar(100)
+  country_code                                                                                       String?                                        @db.VarChar(10)
+  country_currency                                                                                   String?                                        @db.VarChar(10)
+  created_at                                                                                         DateTime?                                      @db.Timestamp(0)
+  updated_at                                                                                         DateTime?                                      @db.Timestamp(0)
+  status                                                                                             Boolean                                        @default(true)
+  base_currency_master_base_currency_master_country_idTocountry                                      BaseCurrencyMaster[]                           @relation("base_currency_master_country_idTocountry")
+  base_currency_master_base_currency_master_base_currency_idTocountry                                BaseCurrencyMaster[]                           @relation("base_currency_master_base_currency_idTocountry")
+  client_discount_master_client_discount_master_client_discount_master_from_amount_currencyTocountry client_discount_master[]                       @relation("client_discount_master_client_discount_master_from_amount_currencyTocountry")
+  client_discount_master_client_discount_master_client_discount_master_to_amount_currencyTocountry   client_discount_master[]                       @relation("client_discount_master_client_discount_master_to_amount_currencyTocountry")
+  client_resource_rate                                                                               client_resource_rate[]
+  client_service_rate                                                                                client_service_rate[]
+  clients                                                                                            clients[]
+  clients_personal_details                                                                           clients_personal_details[]
+  countrywise_vat                                                                                    countrywise_vat[]
+  employee_onboarding                                                                                EmployeeOnboarding[]
+  employee_salary_details                                                                            EmployeeSalaryDetails[]
+  opportunity                                                                                        Opportunity[]
+  opportunity_asset_opportunity_asset_opportunity_asset_additional_cost_currencyTocountry            opportunity_asset[]                            @relation("opportunity_asset_opportunity_asset_additional_cost_currencyTocountry")
+  opportunity_asset_opportunity_asset_opportunity_asset_cost_per_man_day_currencyTocountry           opportunity_asset[]                            @relation("opportunity_asset_opportunity_asset_cost_per_man_day_currencyTocountry")
+  opportunity_asset_opportunity_asset_opportunity_asset_sales_rate_currencyTocountry                 opportunity_asset[]                            @relation("opportunity_asset_opportunity_asset_sales_rate_currencyTocountry")
+  opportunity_asset_opportunity_asset_opportunity_service_delivery_currencyTocountry                 opportunity_asset[]                            @relation("opportunity_asset_opportunity_service_delivery_currencyTocountry")
+  opportunity_engagement_expense                                                                     opportunity_engagement_expense[]
+  opportunity_engagement_expense_type_rate                                                           opportunity_engagement_expense_type_rate[]
+  opportunity_resource                                                                               opportunity_resource[]
+  opportunity_service_delivery_partner_details                                                       opportunity_service_delivery_partner_details[]
+  organisation_organisation_countryTocountry                                                         Organisation[]                                 @relation("organisation_countryTocountry")
+  potential_candidate                                                                                PotentialCandidate[]
+  project_expense_project_expense_base_currency_master_idTocountry                                   ProjectExpense[]                               @relation("project_expense_base_currency_master_idTocountry")
+  project_expense_project_expense_project_expense_currencyTocountry                                  ProjectExpense[]                               @relation("project_expense_project_expense_currencyTocountry")
+  project_management                                                                                 ProjectManagement[]
+  project_revenue_project_revenue_project_revenue_actual_additional_cost_currencyTocountry           project_revenue[]                              @relation("project_revenue_project_revenue_actual_additional_cost_currencyTocountry")
+  project_revenue_project_revenue_project_revenue_estimated_additional_cost_currencyTocountry        project_revenue[]                              @relation("project_revenue_project_revenue_estimated_additional_cost_currencyTocountry")
+  project_revenue_project_revenue_project_revenue_actual_cost_of_project_currencyTocountry           project_revenue[]                              @relation("project_revenue_project_revenue_actual_cost_of_project_currencyTocountry")
+  project_revenue_project_revenue_project_revenue_estimated_cost_currencyTocountry                   project_revenue[]                              @relation("project_revenue_project_revenue_estimated_cost_currencyTocountry")
+  project_revenue_project_revenue_project_revenue_estimated_sales_currencyTocountry                  project_revenue[]                              @relation("project_revenue_project_revenue_estimated_sales_currencyTocountry")
+  project_revenue_project_revenue_project_revenue_actual_sales_currencyTocountry                     project_revenue[]                              @relation("project_revenue_project_revenue_actual_sales_currencyTocountry")
+  project_task_project_task_project_task_additional_cost_currencyTocountry                           ProjectTask[]                                  @relation("project_task_project_task_additional_cost_currencyTocountry")
+  project_task_project_task_project_task_sales_currencyTocountry                                     ProjectTask[]                                  @relation("project_task_project_task_sales_currencyTocountry")
+  sales_invoice                                                                                      sales_invoice[]
+  sales_invoice_task                                                                                 sales_invoice_task[]
+  service_delivery_partner_resource_rate                                                             service_delivery_partner_resource_rate[]
+  service_delivery_partner_service_rate                                                              service_delivery_partner_service_rate[]
+  service_master_service_master_service_cost_currencyTocountry                                       ServiceMaster[]                                @relation("service_master_service_cost_currencyTocountry")
+  service_master_service_master_service_sales_currencyTocountry                                      ServiceMaster[]                                @relation("service_master_service_sales_currencyTocountry")
+  vendors                                                                                            vendors[]
+
+  @@map("country")
+}
+
+model ServiceMaster {
+  id                                                     Int                                     @id @default(autoincrement())
+  service_name                                           String                                  @db.VarChar(50)
+  service_description                                    String?                                 @db.VarChar(50)
+  service_cost_currency                                  Int?
+  service_cost_amount                                    Float?                                  @db.Float
+  service_sales_currency                                 Int?
+  service_sales_amount                                   Float?                                  @db.Float
+  status                                                 Boolean?                                @default(true)
+  service_created_at                                     DateTime?                               @default(now()) @db.Timestamp(0)
+  service_updated_at                                     DateTime                                @default(now()) @db.Timestamp(0)
+  service_deleted_at                                     DateTime?                               @db.Timestamp(0)
+  service_created_by                                     String?                                 @db.VarChar(50)
+  service_updated_by                                     String?                                 @db.VarChar(50)
+  client_service_rate                                    client_service_rate[]
+  opportunity_asset                                      opportunity_asset[]
+  project_task                                           ProjectTask[]
+  service_delivery_partner_service_rate                  service_delivery_partner_service_rate[]
+  country_service_master_service_cost_currencyTocountry  CountryMaster?                          @relation("service_master_service_cost_currencyTocountry", fields: [service_cost_currency], references: [id], onDelete: Cascade, map: "sm_currency_fk")
+  country_service_master_service_sales_currencyTocountry CountryMaster?                          @relation("service_master_service_sales_currencyTocountry", fields: [service_sales_currency], references: [id], onDelete: Cascade, map: "sm_currency_sales_fk")
+
+  @@index([service_cost_currency], map: "sm_currency_fk")
+  @@index([service_sales_currency], map: "sm_currency_sales_fk")
+  @@map("service_master")
+}
+
+model IndustryMaster {
+  id            Int       @id @default(autoincrement())
+  industry_name String?   @db.VarChar(50)
+  cretaed_at    DateTime  @default(now()) @db.Timestamp(0)
+  updated_at    DateTime  @default(now()) @updatedAt @db.Timestamp(0)
+  updated_by    String?   @db.VarChar(50)
+  deleted_at    DateTime? @db.Timestamp(0)
+  status        Boolean   @default(true)
+  created_by    String?   @db.VarChar(50)
+  created_at    DateTime  @default(now()) @db.Timestamp(0)
+
+  @@map("industry_master")
+}
+
+model BaseCurrencyMaster {
+  id                                                     Int            @id @default(autoincrement())
+  country_id                                             Int?
+  base_currency_id                                       Int?
+  base_currency_created_at                               DateTime       @default(now()) @db.Timestamp(0)
+  base_currency_updated_at                               DateTime       @default(now()) @db.Timestamp(0)
+  base_currency_deleted_at                               DateTime?      @db.Timestamp(0)
+  base_currency_created_by                               String?        @db.VarChar(50)
+  base_currency_updated_by                               String?        @db.VarChar(50)
+  status                                                 Boolean        @default(true)
+  country_base_currency_master_country_idTocountry       CountryMaster? @relation("base_currency_master_country_idTocountry", fields: [country_id], references: [id], onDelete: Cascade, map: "bcm_country_fk")
+  country_base_currency_master_base_currency_idTocountry CountryMaster? @relation("base_currency_master_base_currency_idTocountry", fields: [base_currency_id], references: [id], onDelete: Cascade, map: "bcm_currency_fk")
+
+  @@index([country_id], map: "bcm_country_fk")
+  @@index([base_currency_id], map: "bcm_currency_fk")
+  @@map("base_currency_master")
+}
+
+model MenuMaster {
+  id             Int                   @id @default(autoincrement()) @db.UnsignedInt
+  menu_name      String?               @db.VarChar(50)
+  route_url      String?               @db.LongText
+  font_icon      String?               @db.VarChar(50)
+  order          Int?                  @db.SmallInt
+  position       menu_master_position?
+  type           menu_master_type?
+  parent_menu_id Int?                  @db.UnsignedInt
+  created_by     String?               @db.VarChar(50)
+  updated_by     String?               @db.VarChar(50)
+  created_at     DateTime?             @db.Timestamp(0)
+  updated_at     DateTime?             @updatedAt @db.Timestamp(0)
+  deleted_at     DateTime?             @db.Timestamp(0)
+  status         Boolean               @default(true)
+  permissions    Permission[]
+
+  @@map("menu_master")
+}
+
+model Permission {
+  id               Int              @id @default(autoincrement())
+  description      String?          @db.VarChar(50)
+  menu_id          Int?             @db.UnsignedInt
+  module_id        Int?             @db.UnsignedInt
+  created_by       Int?
+  updated_by       Int?
+  created_at       DateTime?        @db.Timestamp(0)
+  updated_at       DateTime?        @updatedAt @db.Timestamp(0)
+  deleted_at       DateTime?        @db.Timestamp(0)
+  status_master_id Boolean          @default(true)
+  menu             MenuMaster?      @relation(fields: [menu_id], references: [id], onDelete: Cascade, map: "p_menu_fk")
+  module_master    ModuleMaster?    @relation(fields: [module_id], references: [id], onDelete: Cascade, map: "p_module_fk")
+  rolePermissions  RolePermission[]
+
+  @@index([menu_id], map: "p_menu_fk")
+  @@index([module_id], map: "p_module_fk")
+  @@map("permissions")
+}
+
+model RolePermission {
+  id              Int           @id @default(autoincrement())
+  permission_id   Int?
+  role_id         Int?
+  organization_id Int?
+  created_by      String?       @db.VarChar(50)
+  updated_by      String?       @db.VarChar(50)
+  created_at      DateTime?     @db.Timestamp(0)
+  updated_at      DateTime?     @updatedAt @db.Timestamp(0)
+  status          Boolean       @default(false)
+  organisation    Organisation? @relation(fields: [organization_id], references: [id], onDelete: Cascade, map: "rp_organisation_fk")
+  permission      Permission?   @relation(fields: [permission_id], references: [id], onDelete: Cascade, map: "rp_permission_fk")
+  role            RoleMaster?   @relation(fields: [role_id], references: [id], onDelete: Cascade, map: "rp_role_fk")
+
+  @@index([organization_id], map: "rp_organisation_fk")
+  @@index([permission_id], map: "rp_permission_fk")
+  @@index([role_id], map: "rp_role_fk")
+  @@map("role_permissions")
+}
+
+model VendorContactDetails {
+  id                    Int                            @id @default(autoincrement())
+  uid                   String?                        @db.VarChar(50)
+  vendor_id             Int
+  person_name           String?                        @db.VarChar(100)
+  email                 String?                        @db.VarChar(100)
+  dob                   DateTime?                      @db.Date
+  gender                vendor_contact_details_gender?
+  contact_num           String?                        @db.VarChar(15)
+  contact_photo         String?                        @db.VarChar(200)
+  role_master_id        Int
+  is_primary            Boolean?
+  code                  String?                        @db.VarChar(20)
+  designation_master_id Int?
+  created_at            DateTime?                      @db.Timestamp(0)
+  updated_at            DateTime?                      @updatedAt @db.Timestamp(0)
+  deleted_at            DateTime?                      @db.Timestamp(0)
+  status                Boolean                        @default(true)
+  designation_master    DesignationMaster?             @relation(fields: [designation_master_id], references: [id], onDelete: Cascade, map: "vcd_designation_fk")
+  role_master           RoleMaster                     @relation(fields: [role_master_id], references: [id], onDelete: Cascade, map: "vcd_role_fk")
+  vendor                vendors                        @relation(fields: [vendor_id], references: [id], onDelete: Cascade, map: "vcd_vendor_fk")
+
+  @@index([designation_master_id], map: "vcd_designation_fk")
+  @@index([role_master_id], map: "vcd_role_fk")
+  @@index([vendor_id], map: "vcd_vendor_fk")
+  @@map("vendor_contact_details")
+}
+
+model Opportunity {
+  id                                                         Int                       @id @default(autoincrement())
+  opportunity_code                                           String?                   @db.VarChar(20)
+  opportunity_name                                           String?                   @db.VarChar(50)
+  opportunity_description                                    String?                   @db.VarChar(255)
+  client_id                                                  Int?
+  client_vat_id                                              Int?
+  opportunity_service_delivery_partner_id                    Int?
+  sdp_vat_id                                                 Int?
+  opportunity_lead_source                                    Int?
+  opportunity_owner_name                                     Int?
+  opportunity_deadline                                       DateTime?                 @db.Timestamp(0)
+  opportunity_total_cost                                     Float?                    @db.Float
+  opportunity_currency                                       Int?
+  status_master_id                                           Int?
+  opportunity_closure_reason                                 String?                   @db.VarChar(30)
+  total_consultation_amount                                  Float?                    @db.Float
+  total_additional_cost                                      Float?                    @db.Float
+  total_vendor_consultation_amount                           Float?                    @db.Float
+  opportunity_total_consultation_amount                      Float?                    @db.Float
+  opportunity_total_client_vat_amount                        Float                     @db.Float
+  total_sales_base_currency_vat_amount                       Int?                      @default(0)
+  opportunity_asset_sales_line_total                         Float                     @db.Float
+  sale_conversion_rate                                       Float?                    @db.Float
+  total_base_currency_consultation_amount                    Float?                    @default(0) @db.Float
+  opportunity_total_additional_cost                          Float?                    @db.Float
+  additional_sales_cost_conversion_rate                      Float?                    @db.Float
+  total_base_currency_additional_sales_cost_amount           Float?                    @default(0) @db.Float
+  opportunity_total_vendor_consultation_amount               Float?                    @db.Float
+  opportunity_total_vendor_vat_amount                        Float                     @db.Float
+  total_purchase_base_currency_vat_amount                    Float?                    @default(0) @db.Float
+  opportunity_vendor_purchase_line_total                     Float                     @db.Float
+  purchase_conversion_rate                                   Float?                    @db.Float
+  total_base_currency_vendor_consultation_amount             Float?                    @default(0) @db.Float
+  opportunity_total_vendor_additional_cost                   Float?                    @db.Float
+  additional_purchase_cost_conversion_rate                   Float?
+  total_base_currency_additional_purchase_cost_amount        Float?                    @default(0) @db.Float
+  status                                                     Boolean                   @default(true)
+  opportunity_created_by                                     String?                   @db.VarChar(50)
+  opportunity_created_at                                     DateTime                  @default(now()) @db.Timestamp(0)
+  opportunity_updated_at                                     DateTime                  @default(now()) @db.Timestamp(0)
+  opportunity_deleted_at                                     DateTime?                 @db.Timestamp(0)
+  client                                                     clients?                  @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "o_client_fk")
+  countrywise_vat_opportunity_client_vat_idTocountrywise_vat countrywise_vat?          @relation("opportunity_client_vat_idTocountrywise_vat", fields: [client_vat_id], references: [id], onDelete: Cascade, map: "o_client_vat_fk")
+  country                                                    CountryMaster?            @relation(fields: [opportunity_currency], references: [id], onDelete: Cascade, map: "o_currency_fk")
+  lead_source                                                lead_source?              @relation(fields: [opportunity_lead_source], references: [id], onDelete: Cascade, map: "o_lead_source_fk")
+  employee_onboarding                                        EmployeeOnboarding?       @relation(fields: [opportunity_owner_name], references: [id], onDelete: Cascade, map: "o_owner_fk")
+  status_master                                              StatusMaster?             @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "o_status_master_fk")
+  vendors                                                    vendors?                  @relation(fields: [opportunity_service_delivery_partner_id], references: [id], onDelete: Cascade, map: "o_vendor_fk")
+  countrywise_vat_opportunity_sdp_vat_idTocountrywise_vat    countrywise_vat?          @relation("opportunity_sdp_vat_idTocountrywise_vat", fields: [sdp_vat_id], references: [id], onDelete: Cascade, map: "o_vendor_vat_fk")
+  opportunity_asset                                          opportunity_asset[]
+  opportunity_documents                                      opportunity_documents[]
+  opportunity_resource                                       opportunity_resource[]
+  opportunity_stage_notes                                    opportunity_stage_notes[]
+  project_management                                         ProjectManagement[]
+  sales_expense                                              sales_expense[]
+
+  @@index([client_id], map: "o_client_fk")
+  @@index([client_vat_id], map: "o_client_vat_fk")
+  @@index([opportunity_currency], map: "o_currency_fk")
+  @@index([opportunity_lead_source], map: "o_lead_source_fk")
+  @@index([opportunity_owner_name], map: "o_owner_fk")
+  @@index([status_master_id], map: "o_status_master_fk")
+  @@index([opportunity_service_delivery_partner_id], map: "o_vendor_fk")
+  @@index([sdp_vat_id], map: "o_vendor_vat_fk")
+  @@map("opportunity")
+}
+
+model ProjectManagement {
+  id                                                                Int                                      @id @default(autoincrement())
+  client_id                                                         Int
+  client_vat_id                                                     Int?
+  opportunity_id                                                    Int?
+  project_name                                                      String?                                  @db.VarChar(25)
+  project_description                                               String?                                  @db.VarChar(100)
+  service_delivery_partner_id                                       Int?
+  vendor_vat_id                                                     Int?
+  project_code                                                      String?                                  @db.VarChar(10)
+  file_upload                                                       String?                                  @db.VarChar(200)
+  project_management_currency                                       Int
+  project_management_delivery_model                                 Int?
+  project_start_date                                                DateTime?                                @db.Timestamp(0)
+  project_estimate_end_date                                         DateTime?                                @db.Timestamp(0)
+  project_management_no_of_consultants                              Int?
+  project_management_no_of_man_days                                 Int?
+  project_management_actual_no_of_man_days                          Int?
+  project_management_actual_end_date                                Int?
+  project_management_kickOff_date                                   DateTime?                                @db.Timestamp(0)
+  project_management_goLive_date                                    DateTime?                                @db.Timestamp(0)
+  project_management_created_at                                     DateTime                                 @default(now()) @db.Timestamp(0)
+  project_management_updated_at                                     DateTime                                 @default(now()) @db.Timestamp(0)
+  project_management_created_by                                     String?                                  @db.VarChar(50)
+  project_management_updated_by                                     String?                                  @db.VarChar(50)
+  project_management_deleted_at                                     DateTime?                                @db.Timestamp(0)
+  status_master_id                                                  Int?
+  status                                                            Boolean?
+  project_documents                                                 project_documents[]
+  project_expense                                                   ProjectExpense[]
+  client                                                            clients                                  @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "p_client_fk")
+  countrywise_vat_project_management_client_vat_idTocountrywise_vat countrywise_vat?                         @relation("project_management_client_vat_idTocountrywise_vat", fields: [client_vat_id], references: [id], onDelete: Cascade, map: "p_client_vat_fk")
+  country                                                           CountryMaster                            @relation(fields: [project_management_currency], references: [id], onDelete: Cascade, map: "p_currency_fk")
+  opportunity                                                       Opportunity?                             @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "p_opp_fk")
+  vendors                                                           vendors?                                 @relation(fields: [service_delivery_partner_id], references: [id], onDelete: Cascade, map: "p_sdp_vat_fk")
+  status_master                                                     StatusMaster?                            @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "p_status_fk")
+  countrywise_vat_project_management_vendor_vat_idTocountrywise_vat countrywise_vat?                         @relation("project_management_vendor_vat_idTocountrywise_vat", fields: [vendor_vat_id], references: [id], onDelete: Cascade, map: "p_vendor_vat_fk")
+  project_management_resource_assignment                            project_management_resource_assignment[]
+  project_milestones                                                project_milestones[]
+  project_revenue                                                   project_revenue[]
+  project_task                                                      ProjectTask[]
+  sales_expense                                                     sales_expense[]
+  sales_invoice                                                     sales_invoice[]
+  
+  // PROJECT MANAGEMENT MODULE RELATIONS
+  tasks               Task[]
+  timesheets          Timesheet[]
+  resourceAllocations ResourceAllocation[]
+  teamMembers         ProjectTeamMember[]
+
+  @@index([client_id], map: "p_client_fk")
+  @@index([client_vat_id], map: "p_client_vat_fk")
+  @@index([project_management_currency], map: "p_currency_fk")
+  @@index([opportunity_id], map: "p_opp_fk")
+  @@index([service_delivery_partner_id], map: "p_sdp_vat_fk")
+  @@index([status_master_id], map: "p_status_fk")
+  @@index([vendor_vat_id], map: "p_vendor_vat_fk")
+  @@map("project_management")
+}
+
+model ProjectTask {
+  id                                                                  Int                  @id @default(autoincrement())
+  opportunity_asset_id                                                Int
+  project_task_id                                                     String?              @db.VarChar(50)
+  project_task_name                                                   String?              @db.VarChar(50)
+  project_description                                                 String               @db.VarChar(50)
+  project_quantity                                                    Int
+  service_master_id                                                   Int?
+  project_task_progress                                               Int?
+  project_task_start_date                                             DateTime?            @db.Timestamp(0)
+  project_task_estimated_days                                         Int?
+  project_task_billed_days                                            Int
+  project_task_expected_end_date                                      DateTime?            @db.Timestamp(0)
+  project_management_id                                               Int?
+  project_no_of_cosultants                                            Float?               @db.Float
+  project_task_sales_amount                                           Float?               @db.Float
+  project_task_base_currency_sales_amount                             Float                @db.Float
+  project_task_sales_currency                                         Int?
+  project_task_additional_cost                                        Float?               @db.Float
+  project_task_base_currency_additional_cost                          Float                @db.Float
+  project_task_additional_cost_currency                               Int?
+  project_task_rate_per_man_day                                       Int?
+  project_task_base_currency_rate_per_manday                          Float?               @db.Float
+  project_task_total_vendor_consultation_amount                       Float?               @db.Float
+  project_task_base_currency_total_vendor_consultation_amount         Float                @db.Float
+  project_task_vat_amount                                             Float                @db.Float
+  project_task_base_currency_vat_amount                               Float?               @db.Float
+  project_task_total_purchase_amount                                  Float                @db.Float
+  project_task_base_currency_purchase_amount                          Float?               @db.Float
+  status                                                              Boolean              @default(true)
+  status_master_id                                                    Int?
+  project_task_created_at                                             DateTime             @default(now()) @db.Timestamp(0)
+  project_task_updated_at                                             DateTime             @default(now()) @db.Timestamp(0)
+  project_task_deleted_at                                             DateTime?            @db.Timestamp(0)
+  project_expense                                                     ProjectExpense[]
+  country_project_task_project_task_additional_cost_currencyTocountry CountryMaster?       @relation("project_task_project_task_additional_cost_currencyTocountry", fields: [project_task_additional_cost_currency], references: [id], onDelete: Cascade, map: "pt_currency_fk")
+  opportunity_asset                                                   opportunity_asset    @relation(fields: [opportunity_asset_id], references: [id], onDelete: Cascade, map: "pt_opp_asset_fk")
+  project_management                                                  ProjectManagement?   @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pt_project_fk")
+  country_project_task_project_task_sales_currencyTocountry           CountryMaster?       @relation("project_task_project_task_sales_currencyTocountry", fields: [project_task_sales_currency], references: [id], onDelete: Cascade, map: "pt_scurrency_fk")
+  service_master                                                      ServiceMaster?       @relation(fields: [service_master_id], references: [id], onDelete: Cascade, map: "pt_service_fk")
+  status_master                                                       StatusMaster?        @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "pt_status_fk")
+  sales_invoice_task                                                  sales_invoice_task[]
+
+  @@index([project_task_additional_cost_currency], map: "pt_currency_fk")
+  @@index([opportunity_asset_id], map: "pt_opp_asset_fk")
+  @@index([project_management_id], map: "pt_project_fk")
+  @@index([project_task_sales_currency], map: "pt_scurrency_fk")
+  @@index([service_master_id], map: "pt_service_fk")
+  @@index([status_master_id], map: "pt_status_fk")
+  @@map("project_task")
+}
+
+model ProjectExpense {
+  id                                                        Int                @id @default(autoincrement())
+  project_task_id                                           Int?
+  expense_master_id                                         Int?
+  project_management_id                                     Int?
+  user_id                                                   String?            @db.VarChar(50)
+  user_id_table_name                                        String?            @db.VarChar(10)
+  expense_amount                                            Float?             @db.Float
+  base_currency_expense_amount                              Float              @db.Float
+  base_currency_master_id                                   Int?
+  project_expense_currency                                  Int?
+  conversion_rate                                           Float?             @db.Float
+  expense_attachment                                        String?            @db.VarChar(100)
+  file_name                                                 String?            @db.VarChar(100)
+  project_expense_service                                   Int?               @db.TinyInt
+  reject_reason                                             String?            @db.VarChar(50)
+  status_master_id                                          Int?
+  expense_created_at                                        DateTime           @default(now()) @db.Timestamp(0)
+  expense_updated_at                                        DateTime           @default(now()) @db.Timestamp(0)
+  project_expense_deleted_at                                DateTime?          @db.Timestamp(0)
+  status                                                    Boolean            @default(true)
+  status_master                                             StatusMaster?      @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: " pe_status_master_fk")
+  country_project_expense_base_currency_master_idTocountry  CountryMaster?     @relation("project_expense_base_currency_master_idTocountry", fields: [base_currency_master_id], references: [id], onDelete: Cascade, map: "pe_bcurrency_fk")
+  country_project_expense_project_expense_currencyTocountry CountryMaster?     @relation("project_expense_project_expense_currencyTocountry", fields: [project_expense_currency], references: [id], onDelete: Cascade, map: "pe_ecurrency_fk")
+  expense_master                                            expense_master?    @relation(fields: [expense_master_id], references: [id], onDelete: Cascade, map: "pe_expense_fk")
+  project_management                                        ProjectManagement? @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pe_project_fk")
+  project_task                                              ProjectTask?       @relation(fields: [project_task_id], references: [id], onDelete: Cascade, map: "pe_project_task_fk")
+
+  @@index([status_master_id], map: " pe_status_master_fk")
+  @@index([base_currency_master_id], map: "pe_bcurrency_fk")
+  @@index([project_expense_currency], map: "pe_ecurrency_fk")
+  @@index([expense_master_id], map: "pe_expense_fk")
+  @@index([project_management_id], map: "pe_project_fk")
+  @@index([project_task_id], map: "pe_project_task_fk")
+  @@map("project_expense")
+}
+
+model Settings {
+  id                  Int      @id @default(autoincrement())
+  keyword             String   @db.VarChar(120)
+  value               Float    @db.Float
+  settings_created_at DateTime @default(now()) @db.Timestamp(0)
+  settings_updated_at DateTime @default(now()) @db.Timestamp(0)
+
+  @@map("settings")
+}
+
+model EmailLog {
+  id             Int       @id @default(autoincrement())
+  email_sender   String?   @db.VarChar(50)
+  email_receiver String?   @db.VarChar(50)
+  email_content  String?   @db.Text
+  email_status   String?   @db.VarChar(10)
+  email_comment  String?   @db.Text
+  created_at     DateTime? @db.Timestamp(0)
+  updated_at     DateTime? @updatedAt @db.Timestamp(0)
+
+  @@map("email_logs")
+}
+
+model PotentialCandidate {
+  id                             Int                                    @id @default(autoincrement())
+  first_name                     String?                                @db.VarChar(50)
+  last_name                      String?                                @db.VarChar(50)
+  email                          String?                                @db.VarChar(50)
+  contact_number                 String?                                @db.VarChar(15)
+  gender                         Int?
+  dob                            DateTime?                              @db.Date
+  address                        String?                                @db.VarChar(255)
+  potential_country              Int?
+  potential_state                Int?                                   @db.UnsignedInt
+  potential_city                 Int?                                   @db.UnsignedInt
+  nationality                    String?                                @db.VarChar(50)
+  designation                    Int?
+  engagement_method              potential_candidate_engagement_method?
+  candidate_recruiter_id         Int?
+  status_master_id               Int?
+  created_at                     DateTime?                              @db.Timestamp(0)
+  updated_at                     DateTime?                              @updatedAt @db.Timestamp(0)
+  deleted_at                     DateTime?                              @db.Timestamp(0)
+  status                         Boolean
+  created_by                     String?                                @db.VarChar(100)
+  employee_onboarding            EmployeeOnboarding[]
+  cities                         cities?                                @relation(fields: [potential_city], references: [id], onDelete: Cascade, map: "pc_city_fk")
+  country                        CountryMaster?                         @relation(fields: [potential_country], references: [id], onDelete: Cascade, map: "pc_country_fk")
+  status_master                  StatusMaster?                          @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "pc_key")
+  states                         states?                                @relation(fields: [potential_state], references: [id], onDelete: Cascade, map: "pc_state_fk")
+  potential_candidate_document   potential_candidate_document[]
+  potential_candidate_education  potential_candidate_education[]
+  potential_candidate_experience potential_candidate_experience[]
+
+  @@index([potential_city], map: "pc_city_fk")
+  @@index([potential_country], map: "pc_country_fk")
+  @@index([potential_state], map: "pc_state_fk")
+  @@index([status_master_id], map: "status_master_fk")
+  @@map("potential_candidate")
+}
+
+model allowance_type_master {
+  id                    Int       @id @default(autoincrement())
+  allowance_type        String    @db.VarChar(50)
+  allowance_description String?   @db.VarChar(50)
+  allowance_max_amt     Float?    @db.Float
+  allowance_created_at  DateTime? @default(now()) @db.Timestamp(0)
+  allowance_updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  allowance_deleted_at  DateTime? @db.Timestamp(0)
+  allowance_created_by  String?   @db.VarChar(50)
+  allowance_updated_by  String?   @db.VarChar(50)
+  status                Boolean   @default(true)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model cities {
+  id                  Int                  @id @default(autoincrement()) @db.UnsignedInt
+  name                String               @db.VarChar(255)
+  state_id            Int                  @db.UnsignedMediumInt
+  state_code          String               @db.VarChar(255)
+  country_id          Int                  @db.UnsignedMediumInt
+  country_code        String               @db.Char(2)
+  latitude            Decimal              @db.Decimal(10, 8)
+  longitude           Decimal              @db.Decimal(11, 8)
+  created_at          DateTime             @default(dbgenerated("'2014-01-01 01:01:01'")) @db.Timestamp(0)
+  updated_at          DateTime             @default(now()) @db.Timestamp(0)
+  flag                Boolean              @default(true)
+  wikiDataId          String?              @db.VarChar(255)
+  clients             clients[]
+  employee_onboarding EmployeeOnboarding[]
+  potential_candidate PotentialCandidate[]
+  vendors             vendors[]
+
+  @@index([state_id], map: "cities_test_ibfk_1")
+  @@index([country_id], map: "cities_test_ibfk_2")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model claim {
+  id                                                  Int           @id @default(autoincrement()) @db.UnsignedInt
+  leave_id                                            Int?          @db.UnsignedInt
+  claim_type                                          Boolean
+  expense_master_id                                   Int?
+  from_date_time                                      DateTime?     @db.DateTime(0)
+  to_date_time                                        DateTime?     @db.Timestamp(0)
+  from_city                                           String?       @db.VarChar(25)
+  to_city                                             String?       @db.VarChar(25)
+  number_of_days_leave                                Int?          @db.TinyInt
+  cost                                                Float?        @db.Float
+  status_master_id                                    Int?
+  document_filename                                   String?       @db.VarChar(100)
+  document_link                                       String        @db.VarChar(200)
+  reason                                              String        @db.VarChar(200)
+  approver_doc_link                                   String        @db.VarChar(200)
+  approver_doc_filename                               String        @db.VarChar(100)
+  preference                                          Int?
+  created_by                                          String        @db.VarChar(100)
+  updated_by                                          Int
+  created_at                                          DateTime?     @db.Timestamp(0)
+  updated_at                                          DateTime?     @db.Timestamp(0)
+  deleted_at                                          DateTime?     @db.Timestamp(0)
+  status                                              Boolean       @default(true)
+  apply_leave_apply_leave_air_expense_claim_idToclaim ApplyLeave[]  @relation("apply_leave_air_expense_claim_idToclaim")
+  apply_leave_claim_leave_idToapply_leave             ApplyLeave?   @relation("claim_leave_idToapply_leave", fields: [leave_id], references: [id], onDelete: Cascade, map: "c_leave_fk")
+  status_master                                       StatusMaster? @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "c_status_master_fk")
+
+  @@index([leave_id], map: "c_leave_fk")
+  @@index([status_master_id], map: "c_status_master_fk")
+}
+
+model client_discount_master {
+  id                                                                                  Int             @id @default(autoincrement())
+  client_id                                                                           Int
+  client_discount_master_discount_name                                                String          @db.VarChar(50)
+  client_discount_master_from_amount                                                  Float?          @db.Float
+  client_discount_master_from_amount_currency                                         Int?
+  client_discount_master_to_amount                                                    Float?          @db.Float
+  client_discount_master_to_amount_currency                                           Int?
+  client_discount_master_discount_percentage                                          Float?          @db.Float
+  client_discount_master_discount_slab                                                String?         @db.VarChar(5)
+  client_discount_master_created_at                                                   DateTime        @default(now()) @db.Timestamp(0)
+  client_discount_master_updated_at                                                   DateTime        @default(now()) @db.Timestamp(0)
+  client_discount_master_deleted_at                                                   DateTime?       @db.Timestamp(0)
+  status                                                                              Boolean         @default(true)
+  clients                                                                             clients         @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "cdm_client_fk")
+  country_client_discount_master_client_discount_master_from_amount_currencyTocountry CountryMaster?  @relation("client_discount_master_client_discount_master_from_amount_currencyTocountry", fields: [client_discount_master_from_amount_currency], references: [id], onDelete: Cascade, map: "cdm_fcurrency_fk")
+  country_client_discount_master_client_discount_master_to_amount_currencyTocountry   CountryMaster?  @relation("client_discount_master_client_discount_master_to_amount_currencyTocountry", fields: [client_discount_master_to_amount_currency], references: [id], onDelete: Cascade, map: "cdm_tcurrency_fk")
+  sales_invoice                                                                       sales_invoice[]
+
+  @@index([client_id], map: "cdm_client_fk")
+  @@index([client_discount_master_from_amount_currency], map: "cdm_fcurrency_fk")
+  @@index([client_discount_master_to_amount_currency], map: "cdm_tcurrency_fk")
+}
+
+model client_history {
+  id                Int                               @id @default(autoincrement())
+  table_name        String?                           @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                           @db.LongText
+  type_of_operation client_history_type_of_operation?
+  modified_date     DateTime?                         @db.DateTime(0)
+  modified_by       String?                           @db.VarChar(50)
+  created_at        DateTime                          @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                          @default(now()) @db.Timestamp(0)
+}
+
+model client_resource_rate {
+  id                                   Int                                                     @id @default(autoincrement())
+  client_id                            Int?
+  resource_role_master_id              Int?
+  experiance_in_years                  Int                                                     @default(0)
+  client_resource_rate_amount          Float?                                                  @db.Float
+  client_resource_rate_amount_currency Int?
+  client_resource_conversion_rate      Float?                                                  @db.Float
+  client_resource_rate_billing_type    client_resource_rate_client_resource_rate_billing_type?
+  client_resource_rate_created_at      DateTime                                                @default(now()) @db.Timestamp(0)
+  client_resource_rate_updated_at      DateTime                                                @default(now()) @db.Timestamp(0)
+  client_resource_rate_deleted_at      DateTime?                                               @db.Timestamp(0)
+  status                               Boolean                                                 @default(true)
+  clients                              clients?                                                @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "crr_client_fk")
+  country                              CountryMaster?                                          @relation(fields: [client_resource_rate_amount_currency], references: [id], onDelete: Cascade, map: "crr_currency_fk")
+  designation_master                   DesignationMaster?                                      @relation(fields: [resource_role_master_id], references: [id], onDelete: Cascade, map: "crr_role_fk")
+
+  @@index([client_id], map: "crr_client_fk")
+  @@index([client_resource_rate_amount_currency], map: "crr_currency_fk")
+  @@index([resource_role_master_id], map: "crr_role_fk")
+}
+
+model client_service_rate {
+  id                                  Int            @id @default(autoincrement())
+  client_id                           Int?
+  service_master_id                   Int
+  client_service_rate_amount          Float?         @db.Float
+  client_service_rate_amount_currency Int?
+  client_service_rate_conversion_rate Float?         @db.Float
+  deleted_at                          DateTime?      @db.Timestamp(0)
+  client_service_rate_created_at      DateTime       @default(now()) @db.Timestamp(0)
+  client_service_rate_updated_at      DateTime       @default(now()) @db.Timestamp(0)
+  status                              Boolean
+  clients                             clients?       @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "csr_client_fk")
+  country                             CountryMaster? @relation(fields: [client_service_rate_amount_currency], references: [id], onDelete: Cascade, map: "csr_currency_fk")
+  service_master                      ServiceMaster  @relation(fields: [service_master_id], references: [id], onDelete: Cascade, map: "csr_service_fk")
+
+  @@index([client_id], map: "csr_client_fk")
+  @@index([client_service_rate_amount_currency], map: "csr_currency_fk")
+  @@index([service_master_id], map: "csr_service_fk")
+}
+
+model clients {
+  id                       Int                        @id @default(autoincrement())
+  client_id                String                     @db.VarChar(70)
+  client_name              String                     @db.VarChar(50)
+  client_sector            Int?
+  client_website           String?                    @db.VarChar(50)
+  client_work_location     Int?
+  client_work_address      String?                    @db.VarChar(50)
+  client_state_id          Int?                       @db.UnsignedInt
+  client_city_id           Int?                       @db.UnsignedInt
+  contact_number           String?                    @db.VarChar(15)
+  created_at               DateTime?                  @db.Timestamp(0)
+  updated_at               DateTime?                  @db.Timestamp(0)
+  deleted_at               DateTime?                  @db.Timestamp(0)
+  status                   Boolean                    @default(true)
+  client_discount_master   client_discount_master[]
+  client_resource_rate     client_resource_rate[]
+  client_service_rate      client_service_rate[]
+  cities                   cities?                    @relation(fields: [client_city_id], references: [id], onDelete: Cascade, map: "c_city_fk")
+  country                  CountryMaster?             @relation(fields: [client_work_location], references: [id], onDelete: Cascade, map: "c_country_fk")
+  states                   states?                    @relation(fields: [client_state_id], references: [id], onDelete: Cascade, map: "c_state_fk")
+  clients_personal_details clients_personal_details[]
+  opportunities            Opportunity[]
+  projects                 ProjectManagement[]
+  sales_invoice            sales_invoice[]
+
+  @@index([client_city_id], map: "c_city_fk")
+  @@index([client_work_location], map: "c_country_fk")
+  @@index([client_state_id], map: "c_state_fk")
+}
+
+model clients_personal_details {
+  id                        Int                              @id @default(autoincrement())
+  uid                       String?                          @db.VarChar(50)
+  client_id                 Int?
+  salutation                String?                          @db.VarChar(20)
+  person_name               String?                          @db.VarChar(100)
+  email                     String?                          @db.VarChar(50)
+  dob                       DateTime?                        @db.Date
+  gender                    clients_personal_details_gender?
+  country_code              Int?
+  contact_num               String?                          @db.VarChar(15)
+  role                      Int?
+  designation               Int?
+  client_details_is_primary Boolean?
+  client_contact_document   String?                          @db.VarChar(100)
+  created_at                DateTime?                        @db.Timestamp(0)
+  updated_at                DateTime?                        @db.Timestamp(0)
+  deleted_at                DateTime?                        @db.Timestamp(0)
+  status                    Boolean?                         @default(true)
+  clients                   clients?                         @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "cpd_client_fk")
+  country                   CountryMaster?                   @relation(fields: [country_code], references: [id], onDelete: Cascade, map: "cpd_country_fk")
+  designation_master        DesignationMaster?               @relation(fields: [designation], references: [id], onDelete: Cascade, map: "cpd_designation_fk")
+  role_master               RoleMaster?                      @relation(fields: [role], references: [id], onDelete: Cascade, map: "cpd_role_fk")
+
+  @@index([client_id], map: "cpd_client_fk")
+  @@index([country_code], map: "cpd_country_fk")
+  @@index([designation], map: "cpd_designation_fk")
+  @@index([role], map: "cpd_role_fk")
+}
+
+model code_generation_master {
+  id            Int          @id @default(autoincrement())
+  module_id     Int          @db.UnsignedInt
+  code_format   String       @db.VarChar(20)
+  max_num_digit Int
+  status        Boolean      @default(true)
+  created_at    DateTime?    @db.Timestamp(0)
+  updated_at    DateTime?    @db.Timestamp(0)
+  deleted_at    DateTime?    @db.Timestamp(5)
+  created_by    String?      @db.VarChar(50)
+  updated_by    String?      @db.VarChar(50)
+  module_master ModuleMaster @relation(fields: [module_id], references: [id], onDelete: Cascade, map: "cgm_module_fk")
+
+  @@index([module_id], map: "cgm_module_fk")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model countries {
+  id              Int         @id @default(autoincrement()) @db.UnsignedMediumInt
+  name            String      @db.VarChar(100)
+  iso3            String?     @db.Char(3)
+  numeric_code    String?     @db.Char(3)
+  iso2            String?     @db.Char(2)
+  phonecode       String?     @db.VarChar(255)
+  capital         String?     @db.VarChar(255)
+  currency        String?     @db.VarChar(255)
+  currency_name   String?     @db.VarChar(255)
+  currency_symbol String?     @db.VarChar(255)
+  tld             String?     @db.VarChar(255)
+  native          String?     @db.VarChar(255)
+  region          String?     @db.VarChar(255)
+  region_id       Int?        @db.UnsignedMediumInt
+  subregion       String?     @db.VarChar(255)
+  subregion_id    Int?        @db.UnsignedMediumInt
+  nationality     String?     @db.VarChar(255)
+  timezones       String?     @db.Text
+  translations    String?     @db.Text
+  latitude        Decimal?    @db.Decimal(10, 8)
+  longitude       Decimal?    @db.Decimal(11, 8)
+  emoji           String?
+  emojiU          String?
+  created_at      DateTime?   @db.Timestamp(0)
+  updated_at      DateTime    @default(now()) @db.Timestamp(0)
+  flag            Boolean     @default(true)
+  wikiDataId      String?     @db.VarChar(255)
+  regions         regions?    @relation(fields: [region_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "country_continent_final")
+  subregions      subregions? @relation(fields: [subregion_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "country_subregion_final")
+
+  @@index([region_id], map: "country_continent")
+  @@index([subregion_id], map: "country_subregion")
+}
+
+model country_code_copy {
+  id        Int     @id @default(autoincrement())
+  iso       String  @db.Char(2)
+  name      String  @db.VarChar(80)
+  nicename  String  @db.VarChar(80)
+  iso3      String? @db.Char(3)
+  numcode   Int?    @db.SmallInt
+  phonecode Int
+}
+
+model countrywise_vat {
+  id                                                                   Int                 @id @default(autoincrement())
+  vat_type_id                                                          Int
+  country_id                                                           Int
+  vat_percentage                                                       Float               @db.Float
+  status                                                               Boolean             @default(true)
+  created_at                                                           DateTime            @default(now()) @db.Timestamp(0)
+  updated_at                                                           DateTime            @default(now()) @db.Timestamp(0)
+  deleted_at                                                           DateTime?           @db.Timestamp(0)
+  country                                                              CountryMaster       @relation(fields: [country_id], references: [id], onDelete: Cascade, map: "cv_country_fk")
+  vat_master                                                           vat_master          @relation(fields: [vat_type_id], references: [id], onDelete: Cascade, map: "cv_vat_master_fk")
+  opportunity_opportunity_client_vat_idTocountrywise_vat               Opportunity[]       @relation("opportunity_client_vat_idTocountrywise_vat")
+  opportunity_opportunity_sdp_vat_idTocountrywise_vat                  Opportunity[]       @relation("opportunity_sdp_vat_idTocountrywise_vat")
+  project_management_project_management_client_vat_idTocountrywise_vat ProjectManagement[] @relation("project_management_client_vat_idTocountrywise_vat")
+  project_management_project_management_vendor_vat_idTocountrywise_vat ProjectManagement[] @relation("project_management_vendor_vat_idTocountrywise_vat")
+
+  @@index([country_id], map: "cv_country_fk")
+  @@index([vat_type_id], map: "cv_vat_master_fk")
+}
+
+model discount_master {
+  id                          Int       @id @default(autoincrement())
+  discount_name               String?   @db.VarChar(25)
+  discount_master_from_amount Float?    @db.Float
+  discount_master_to_amount   Float?    @db.Float
+  discount_percentage         Int?      @db.TinyInt
+  status                      Boolean?  @default(true)
+  discount_created_at         DateTime  @default(now()) @db.Timestamp(0)
+  discount_updated_at         DateTime  @default(now()) @db.Timestamp(0)
+  discount_deleted_at         DateTime? @db.Timestamp(0)
+  discount_created_by         String?   @db.VarChar(50)
+  discount_updated_by         String?   @db.VarChar(50)
+}
+
+model email_format_settings {
+  id                 Int      @id
+  email_type_name    String?  @db.VarChar(25)
+  email_subject      String?  @db.VarChar(50)
+  email_body_content String?  @db.Text
+  email_recepient_id String?  @db.VarChar(100)
+  status_master_id   Int?
+  email_created_at   DateTime @default(now()) @db.Timestamp(0)
+  email_updated_at   DateTime @default(now()) @db.Timestamp(0)
+}
+
+model email_smtp_settings {
+  id                       Int      @id @default(autoincrement())
+  email_smtp_host          String   @db.VarChar(25)
+  email_smtp_user          String   @db.VarChar(25)
+  email_smtp_password      String   @db.VarChar(25)
+  email_smtp_port          Int
+  email_smtp_security      String   @db.VarChar(25)
+  email_smtp_auth_domain   String   @db.VarChar(25)
+  email_setting_created_at DateTime @default(now()) @db.Timestamp(0)
+  email_setting_updated_at DateTime @default(now()) @db.Timestamp(0)
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model employee_bank_details {
+  id                     Int                @id @default(autoincrement())
+  employee_onboarding_id Int
+  bank_name              String             @db.VarChar(50)
+  recipient_name         String             @db.VarChar(50)
+  bank_address           String?            @db.VarChar(100)
+  bank_account_number    String             @db.VarChar(50)
+  bank_swift_code        String?            @db.VarChar(20)
+  bank_iban_number       String?            @db.VarChar(50)
+  created_at             DateTime           @default(now()) @db.Timestamp(0)
+  updated_at             DateTime           @default(now()) @db.Timestamp(0)
+  deleted_at             DateTime?          @db.Timestamp(0)
+  status                 Boolean            @default(true)
+  updated_by             String?            @db.VarChar(50)
+  employee_onboarding    EmployeeOnboarding @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "ebd_employee_fk")
+
+  @@index([employee_onboarding_id], map: "ebd_employee_fk")
+}
+
+model employee_document_master {
+  id                           Int                            @id @default(autoincrement()) @db.UnsignedInt
+  document_type_name           String?                        @db.VarChar(40)
+  start_date                   Int?
+  end_date                     Int?
+  upload_document              Int?
+  created_by                   String?                        @db.VarChar(50)
+  updated_by                   String?                        @db.VarChar(50)
+  created_at                   DateTime?                      @db.Timestamp(0)
+  updated_at                   DateTime?                      @db.Timestamp(0)
+  deleted_at                   DateTime?                      @db.Timestamp(0)
+  status                       Boolean                        @default(true)
+  employee_onboard_document    employee_onboard_document[]
+  potential_candidate_document potential_candidate_document[]
+}
+
+model employee_history {
+  id                Int                                 @id @default(autoincrement())
+  table_name        String?                             @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                             @db.LongText
+  type_of_operation employee_history_type_of_operation?
+  modified_date     DateTime?                           @db.DateTime(0)
+  modified_by       String?                             @db.VarChar(50)
+  created_at        DateTime                            @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                            @default(now()) @db.Timestamp(0)
+}
+
+model employee_onboard_document {
+  id                       Int                       @id @default(autoincrement()) @db.UnsignedInt
+  employee_onboarding_id   Int
+  document_master_id       Int?                      @db.UnsignedInt
+  document_number          String?                   @db.VarChar(25)
+  start_date               DateTime?                 @db.Date
+  end_date                 DateTime?                 @db.Date
+  upload_document          String?                   @db.VarChar(255)
+  upload_name              String?                   @db.VarChar(255)
+  created_by               Int?
+  updated_by               Int?
+  created_at               DateTime?                 @db.Timestamp(0)
+  updated_at               DateTime?                 @db.Timestamp(0)
+  deleted_at               DateTime?                 @db.Timestamp(0)
+  status_master_id         Int?
+  mail_sent                Boolean                   @default(false)
+  employee_document_master employee_document_master? @relation(fields: [document_master_id], references: [id], onDelete: Cascade, map: "eod_doc_master_fk")
+  employee_onboarding      EmployeeOnboarding        @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "eod_employee_fk")
+  status_master            StatusMaster?             @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "eod_status_master_fk")
+
+  @@index([document_master_id], map: "eod_doc_master_fk")
+  @@index([employee_onboarding_id], map: "eod_employee_fk")
+  @@index([status_master_id], map: "eod_status_master_fk")
+}
+
+model employee_onboard_project_detail {
+  id                     Int                @id @default(autoincrement()) @db.UnsignedInt
+  employee_onboarding_id Int
+  project_name           String?            @db.VarChar(25)
+  start_date             DateTime?          @db.Date
+  end_date               DateTime?          @db.Date
+  created_by             Int?
+  updated_by             Int?
+  created_at             DateTime?          @db.Timestamp(0)
+  updated_at             DateTime?          @db.Timestamp(0)
+  deleted_at             DateTime?          @db.Timestamp(0)
+  status_master_id       Int?               @default(1)
+  employee_onboarding    EmployeeOnboarding @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "eopd_employee_fk")
+  status_master          StatusMaster?      @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "eopd_status_master_fk")
+
+  @@index([employee_onboarding_id], map: "eopd_employee_fk")
+  @@index([status_master_id], map: "eopd_status_master_fk")
+}
+
+model employee_personal_detail {
+  id                     Int                 @id @default(autoincrement()) @db.UnsignedInt
+  employee_onboarding_id Int?
+  gender                 Int?
+  phone_number           String?             @db.VarChar(15)
+  nationality            Int?
+  religion               Int?
+  marital_status         Int?
+  no_of_children         Int?
+  employment_of_spouse   Int?
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  employee_onboarding    EmployeeOnboarding? @relation(fields: [employee_onboarding_id], references: [id], onDelete: Cascade, map: "epd_employee_fk")
+
+  @@index([employee_onboarding_id], map: "epd_employee_fk")
+}
+
+model expense_master {
+  id                                           Int                                            @id @default(autoincrement())
+  expense_type                                 String                                         @db.VarChar(50)
+  description                                  String?                                        @db.VarChar(50)
+  no_of_consultant                             Int?                                           @db.TinyInt
+  no_of_man_days                               Int?                                           @db.TinyInt
+  created_at                                   DateTime                                       @default(now()) @db.Timestamp(0)
+  updated_at                                   DateTime                                       @default(now()) @db.Timestamp(0)
+  deleted_at                                   DateTime?                                      @db.Timestamp(0)
+  created_by                                   String?                                        @db.VarChar(50)
+  updated_by                                   String?                                        @db.VarChar(50)
+  status                                       Boolean                                        @default(true)
+  opportunity_engagement_expense_type_rate     opportunity_engagement_expense_type_rate[]
+  opportunity_sdp_engagement_expense_type_rate opportunity_sdp_engagement_expense_type_rate[]
+  project_expense                              ProjectExpense[]
+  sales_expense                                sales_expense[]
+}
+
+model failed_jobs {
+  id         BigInt   @id @default(autoincrement()) @db.UnsignedBigInt
+  uuid       String   @unique(map: "failed_jobs_uuid_unique") @db.VarChar(255)
+  connection String   @db.Text
+  queue      String   @db.Text
+  payload    String   @db.LongText
+  exception  String   @db.LongText
+  failed_at  DateTime @default(now()) @db.Timestamp(0)
+}
+
+model file_upload_history {
+  id                Int                                    @id @default(autoincrement())
+  table_name        String?                                @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                                @db.LongText
+  type_of_operation file_upload_history_type_of_operation?
+  modified_date     DateTime?                              @db.DateTime(0)
+  modified_by       String?                                @db.VarChar(50)
+  created_at        DateTime                               @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                               @default(now()) @db.Timestamp(0)
+}
+
+model form_master {
+  id                    Int                   @id @default(autoincrement())
+  form_name             String                @db.VarChar(50)
+  date                  DateTime?             @db.Date
+  form_details          String?               @db.LongText
+  upload_document       String?               @db.VarChar(255)
+  role_master_id        String?               @db.VarChar(11)
+  company               String?               @db.VarChar(10)
+  created_at            DateTime              @default(now()) @db.Timestamp(0)
+  updated_at            DateTime              @default(now()) @db.Timestamp(0)
+  deleted_at            DateTime?             @db.Timestamp(0)
+  created_by            String?               @db.VarChar(50)
+  updated_by            String?               @db.VarChar(50)
+  status                Boolean?              @default(true)
+  employee_consent_form EmployeeConsentForm[]
+  employee_onboarding   EmployeeOnboarding[]
+}
+
+model invoice_history {
+  id                Int                                @id @default(autoincrement())
+  table_name        String?                            @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                            @db.LongText
+  type_of_operation invoice_history_type_of_operation?
+  modified_date     DateTime?                          @db.DateTime(0)
+  modified_by       String?                            @db.VarChar(50)
+  created_at        DateTime                           @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                           @default(now()) @db.Timestamp(0)
+}
+
+model lead_source {
+  id                 Int           @id @default(autoincrement())
+  source_name        String        @db.VarChar(50)
+  source_description String?       @db.VarChar(100)
+  created_at         DateTime      @default(now()) @db.Timestamp(0)
+  updated_at         DateTime      @default(now()) @db.Timestamp(0)
+  updated_by         String?       @db.VarChar(50)
+  deleted_at         DateTime?     @db.Timestamp(0)
+  status             Boolean       @default(true)
+  created_by         String?       @db.VarChar(50)
+  opportunity        Opportunity[]
+}
+
+model leave_history {
+  id                Int                              @id @default(autoincrement())
+  table_name        String?                          @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                          @db.LongText
+  type_of_operation leave_history_type_of_operation?
+  modified_date     DateTime?                        @db.DateTime(0)
+  modified_by       String?                          @db.VarChar(50)
+  created_at        DateTime                         @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                         @default(now()) @db.Timestamp(0)
+}
+
+model master_history {
+  id                Int                               @id @default(autoincrement())
+  table_name        String?                           @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                           @db.LongText
+  type_of_operation master_history_type_of_operation?
+  modified_date     DateTime?                         @db.DateTime(0)
+  modified_by       String?                           @db.VarChar(50)
+  created_at        DateTime                          @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                          @default(now()) @db.Timestamp(0)
+}
+
+model migrations {
+  id        Int    @id @default(autoincrement()) @db.UnsignedInt
+  migration String @db.VarChar(255)
+  batch     Int
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model opportunity_asset {
+  id                                                                             Int                                            @id @default(autoincrement())
+  opportunity_id                                                                 Int?
+  opportunity_asset_id                                                           String?                                        @db.VarChar(10)
+  opportunity_asset_name                                                         String?                                        @db.VarChar(50)
+  opportunity_asset_description                                                  String?                                        @db.VarChar(30)
+  opportunity_asset_quantity                                                     Int?
+  service_master_id                                                              Int?
+  opportunity_asset_start_date                                                   DateTime?                                      @db.Timestamp(0)
+  opportunity_asset_no_of_consultants                                            Int?
+  opportunity_asset_no_of_man_days                                               Int?
+  opportunity_asset_cost_per_man_day                                             Float?                                         @db.Float
+  opportunity_asset_cost_per_man_day_currency                                    Int?
+  opportunity_asset_sales_rate                                                   Float?                                         @db.Float
+  opportunity_asset_sales_rate_currency                                          Int?
+  opportunity_service_delivery_partner_consultation_amount                       Float?                                         @db.Float
+  opportunity_service_delivery_currency                                          Int?
+  opportunity_asset_additional_cost                                              Float?                                         @db.Float
+  opportunity_asset_additional_cost_currency                                     Int?
+  opportunity_asset_vat_amount                                                   Float                                          @db.Float
+  opportunity_asset_sale_line_total                                              Float                                          @db.Float
+  opportunity_asset_created_at                                                   DateTime                                       @default(now()) @db.Timestamp(0)
+  opportunity_asset_updated_at                                                   DateTime                                       @default(now()) @db.Timestamp(0)
+  opportunity_asset_deleted_at                                                   DateTime?                                      @db.Timestamp(0)
+  country_opportunity_asset_opportunity_asset_additional_cost_currencyTocountry  CountryMaster?                                 @relation("opportunity_asset_opportunity_asset_additional_cost_currencyTocountry", fields: [opportunity_asset_additional_cost_currency], references: [id], onDelete: Cascade, map: "oa_accurrency_fk")
+  country_opportunity_asset_opportunity_asset_cost_per_man_day_currencyTocountry CountryMaster?                                 @relation("opportunity_asset_opportunity_asset_cost_per_man_day_currencyTocountry", fields: [opportunity_asset_cost_per_man_day_currency], references: [id], onDelete: Cascade, map: "oa_ccurrency_fk")
+  opportunity                                                                    Opportunity?                                   @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "oa_opportunity_fk")
+  country_opportunity_asset_opportunity_asset_sales_rate_currencyTocountry       CountryMaster?                                 @relation("opportunity_asset_opportunity_asset_sales_rate_currencyTocountry", fields: [opportunity_asset_sales_rate_currency], references: [id], onDelete: Cascade, map: "oa_scurrency_fk")
+  country_opportunity_asset_opportunity_service_delivery_currencyTocountry       CountryMaster?                                 @relation("opportunity_asset_opportunity_service_delivery_currencyTocountry", fields: [opportunity_service_delivery_currency], references: [id], onDelete: Cascade, map: "oa_sdcurrency_fk")
+  service_master                                                                 ServiceMaster?                                 @relation(fields: [service_master_id], references: [id], onDelete: Cascade, map: "oa_service_fk")
+  opportunity_sdp_mode_of_engagement                                             opportunity_sdp_mode_of_engagement[]
+  opportunity_service_delivery_partner_details                                   opportunity_service_delivery_partner_details[]
+  project_task                                                                   ProjectTask[]
+
+  @@index([opportunity_asset_additional_cost_currency], map: "oa_accurrency_fk")
+  @@index([opportunity_asset_cost_per_man_day_currency], map: "oa_ccurrency_fk")
+  @@index([opportunity_id], map: "oa_opportunity_fk")
+  @@index([opportunity_asset_sales_rate_currency], map: "oa_scurrency_fk")
+  @@index([opportunity_service_delivery_currency], map: "oa_sdcurrency_fk")
+  @@index([service_master_id], map: "oa_service_fk")
+}
+
+model opportunity_documents {
+  id             Int         @id @default(autoincrement())
+  opportunity_id Int
+  document_name  String?     @db.VarChar(200)
+  document_link  String?     @db.VarChar(200)
+  created_at     DateTime    @default(now()) @db.Timestamp(0)
+  updated_at     DateTime    @default(now()) @db.Timestamp(0)
+  deleted_at     DateTime?   @db.Timestamp(0)
+  status         Boolean     @default(true)
+  opportunity    Opportunity @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "od_opportunity_fk")
+
+  @@index([opportunity_id], map: "od_opportunity_fk")
+}
+
+model opportunity_engagement_expense {
+  id                                          Int                                       @id @default(autoincrement())
+  opportunity_engagement_expense_type_rate_id Int?
+  no_of_consultation                          Int?
+  no_of_man_days                              Int?
+  expense_cost_per_consultant                 Float?                                    @db.Float
+  expense_rate                                Float?                                    @db.Float
+  expense_cost_per_consultant_currency        Int?
+  opportunity_engagement_expense_created_at   DateTime                                  @default(now()) @db.Timestamp(0)
+  opportunity_engagement_expense_updated_at   DateTime?                                 @default(now()) @db.Timestamp(0)
+  country                                     CountryMaster?                            @relation(fields: [expense_cost_per_consultant_currency], references: [id], onDelete: Cascade, map: "oee_currency_fk")
+  opportunity_engagement_expense_type_rate    opportunity_engagement_expense_type_rate? @relation(fields: [opportunity_engagement_expense_type_rate_id], references: [id], onDelete: Cascade, map: "oee_expense_typerate_fk")
+
+  @@index([expense_cost_per_consultant_currency], map: "oee_currency_fk")
+  @@index([opportunity_engagement_expense_type_rate_id], map: "oee_expense_typerate_fk")
+}
+
+model opportunity_engagement_expense_type_rate {
+  id                                                          Int                              @id @default(autoincrement())
+  opportunity_mode_of_engagement_id                           Int
+  expense_master_id                                           Int
+  no_of_consultants                                           Int?
+  opportunity_engagement_expense_type_rate_amount             Float?                           @db.Float
+  opportunity_engagement_expense_type_rate_currency           Int?
+  opportunity_engagement_expense_type_rate_expense_total_rate Float?                           @db.Float
+  opportunity_engagement_expense_type_rate_created_at         DateTime                         @default(now()) @db.Timestamp(0)
+  opportunity_engagement_expense_type_rate_updated_at         DateTime                         @default(now()) @db.Timestamp(0)
+  opportunity_engagement_expense_type_rate_deleted_at         DateTime?                        @db.Timestamp(0)
+  status                                                      Boolean
+  opportunity_engagement_expense                              opportunity_engagement_expense[]
+  country                                                     CountryMaster?                   @relation(fields: [opportunity_engagement_expense_type_rate_currency], references: [id], onDelete: Cascade, map: "oeetr_currency_fk")
+  expense_master                                              expense_master                   @relation(fields: [expense_master_id], references: [id], onDelete: Cascade, map: "oeetr_expense_fk")
+  opportunity_mode_of_engagement                              opportunity_mode_of_engagement   @relation(fields: [opportunity_mode_of_engagement_id], references: [id], onDelete: Cascade, map: "oeetr_modeOfEngagement_fk")
+
+  @@index([opportunity_engagement_expense_type_rate_currency], map: "oeetr_currency_fk")
+  @@index([expense_master_id], map: "oeetr_expense_fk")
+  @@index([opportunity_mode_of_engagement_id], map: "oeetr_modeOfEngagement_fk")
+}
+
+model opportunity_history {
+  id                Int                                    @id @default(autoincrement())
+  table_name        String?                                @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                                @db.LongText
+  type_of_operation opportunity_history_type_of_operation?
+  modified_date     DateTime?                              @db.DateTime(0)
+  modified_by       String?                                @db.VarChar(50)
+  created_at        DateTime                               @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                               @default(now()) @db.Timestamp(0)
+}
+
+model opportunity_mode_of_engagement {
+  id                                       Int                                        @id @default(autoincrement())
+  opportunity_resource_asset_id            Int?
+  is_resource                              Boolean?
+  mode_engagement_type                     Boolean?
+  is_hybrid_mode                           Boolean?
+  no_of_consultations                      Int?
+  no_of_man_days                           Int?
+  status_master_id                         Int?                                       @default(1)
+  mode_of_engagement_created_at            DateTime                                   @default(now()) @db.Timestamp(0)
+  mode_of_engagement_updated_at            DateTime                                   @default(now()) @db.Timestamp(0)
+  opportunity_engagement_expense_type_rate opportunity_engagement_expense_type_rate[]
+  status_master                            StatusMaster?                              @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "ome_status_fk")
+
+  @@index([status_master_id], map: "ome_status_fk")
+}
+
+model opportunity_resource {
+  id                              Int                @id @default(autoincrement())
+  opportunity_id                  Int?
+  resource_role_master_id         Int?
+  no_of_consultants               Int?
+  no_of_man_days_per_consultant   Int?
+  no_of_months                    Int?
+  rate_card                       Int?
+  currency                        String?            @db.VarChar(10)
+  resource_currency               Int?
+  total_consultation_amount       Float?             @db.Float
+  total_additional_cost           Float?             @db.Float
+  status                          Boolean?           @default(true)
+  opportunity_resource_created_at DateTime           @default(now()) @db.Timestamp(0)
+  opportunity_resource_updated_at DateTime           @default(now()) @db.Timestamp(0)
+  opportunity_resource_deleted_at DateTime?          @db.Timestamp(0)
+  country                         CountryMaster?     @relation(fields: [resource_currency], references: [id], onDelete: Cascade, map: "or_currency_fk")
+  opportunity                     Opportunity?       @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "or_opportunity_fk")
+  designation_master              DesignationMaster? @relation(fields: [resource_role_master_id], references: [id], onDelete: Cascade, map: "or_role_fk")
+
+  @@index([resource_currency], map: "or_currency_fk")
+  @@index([opportunity_id], map: "or_opportunity_fk")
+  @@index([resource_role_master_id], map: "or_role_fk")
+}
+
+model opportunity_sdp_engagement_expense {
+  id                                              Int                                          @id @default(autoincrement())
+  opportunity_sdp_engagement_expense_type_rate_id Int
+  sdp_no_of_consultation                          Int?
+  sdp_no_of_man_days                              Int?
+  sdp_expense_cost_per_consultant                 Float?                                       @db.Float
+  sdp_expense_rate                                Float?                                       @db.Float
+  sdp_opportunity_engagement_expense_created_at   DateTime?                                    @db.Timestamp(0)
+  sdp_opportunity_engagement_expense_updated_at   DateTime?                                    @db.Timestamp(0)
+  sdp_opportunity_engagement_expense_deleted_at   DateTime?                                    @db.Timestamp(0)
+  opportunity_sdp_engagement_expense_type_rate    opportunity_sdp_engagement_expense_type_rate @relation(fields: [opportunity_sdp_engagement_expense_type_rate_id], references: [id], onDelete: Cascade, map: "osee_expensetyperate_fk")
+
+  @@index([opportunity_sdp_engagement_expense_type_rate_id], map: "osee_expensetyperate_fk")
+}
+
+model opportunity_sdp_engagement_expense_type_rate {
+  id                                           Int                                  @id @default(autoincrement())
+  opportunity_sdp_mode_of_engagement_id        Int
+  opportunity_sdp_expense_master_id            Int?
+  opportunity_sdp_expense_type_rate_amount     Float?                               @db.Float
+  opportunity_sdp_expense_type_rate_created_at DateTime?                            @db.Timestamp(0)
+  opportunity_sdp_expense_type_rate_updated_at DateTime?                            @db.Timestamp(0)
+  opportunity_sdp_expense_type_rate_deleted_at DateTime?                            @db.Timestamp(0)
+  status                                       Boolean
+  opportunity_sdp_engagement_expense           opportunity_sdp_engagement_expense[]
+  expense_master                               expense_master?                      @relation(fields: [opportunity_sdp_expense_master_id], references: [id], onDelete: Cascade, map: "oseetr_expense_fk")
+  opportunity_sdp_mode_of_engagement           opportunity_sdp_mode_of_engagement   @relation(fields: [opportunity_sdp_mode_of_engagement_id], references: [id], onDelete: Cascade, map: "oseetr_modeengagement_fk")
+
+  @@index([opportunity_sdp_expense_master_id], map: "oseetr_expense_fk")
+  @@index([opportunity_sdp_mode_of_engagement_id], map: "oseetr_modeengagement_fk")
+}
+
+model opportunity_sdp_mode_of_engagement {
+  id                                           Int                                            @id @default(autoincrement())
+  opportunity_sdp_asset_id                     Int
+  sdp_mode_engagement_type                     Boolean?
+  is_hybrid_mode                               Boolean?
+  no_of_consultations                          Int?
+  no_of_man_days                               Int?
+  mode_of_engagement_created_at                DateTime?                                      @db.Timestamp(0)
+  mode_of_engagement_updated_at                DateTime?                                      @db.Timestamp(0)
+  opportunity_sdp_engagement_expense_type_rate opportunity_sdp_engagement_expense_type_rate[]
+  opportunity_asset                            opportunity_asset                              @relation(fields: [opportunity_sdp_asset_id], references: [id], onDelete: Cascade, map: "osme_asset_fk")
+
+  @@index([opportunity_sdp_asset_id], map: "osme_asset_fk")
+}
+
+model opportunity_service_delivery_partner_details {
+  id                                                 Int                @id @default(autoincrement())
+  opportunity_asset_id                               Int?
+  service_delivery_partner_id                        Int?
+  rate_per_man_day                                   Float?             @db.Float
+  no_of_man_day                                      Int?
+  no_of_consultations                                Int?
+  opportunity_service_delivery_total_amount          Float?             @db.Float
+  opportunity_service_delivery_total_amount_currency Int?
+  opportunity_mode_of_engagement                     String?            @db.VarChar(20)
+  total_sdp_additional_cost                          Float?             @db.Float
+  opportunity_service_delivery_vat_amount            Float              @db.Float
+  opportunity_service_delivery_purchase_line_total   Float              @db.Float
+  status                                             Boolean?           @default(true)
+  service_delivery_partner_created_at                DateTime           @default(now()) @db.Timestamp(0)
+  service_delivery_partner_updated_at                DateTime           @default(now()) @db.Timestamp(0)
+  country                                            CountryMaster?     @relation(fields: [opportunity_service_delivery_total_amount_currency], references: [id], onDelete: Cascade, map: "osdpd_currency_fk")
+  opportunity_asset                                  opportunity_asset? @relation(fields: [opportunity_asset_id], references: [id], onDelete: Cascade, map: "osdpd_opp_asset_fk")
+  vendors                                            vendors?           @relation(fields: [service_delivery_partner_id], references: [id], onDelete: Cascade, map: "osdpd_sdp_fk")
+
+  @@index([opportunity_service_delivery_total_amount_currency], map: "osdpd_currency_fk")
+  @@index([opportunity_asset_id], map: "osdpd_opp_asset_fk")
+  @@index([service_delivery_partner_id], map: "osdpd_sdp_fk")
+}
+
+model opportunity_stage_notes {
+  id                                                                                              Int           @id @default(autoincrement())
+  opportunity_id                                                                                  Int?
+  opportunity_stage_notes_previous_status_id                                                      Int?
+  opportunity_stage_notes_current_status_id                                                       Int?
+  opportunity_status_notes                                                                        String?       @db.VarChar(100)
+  opportunity_stage_notes_created_by                                                              String?       @db.VarChar(50)
+  opportunity_stage_created_at                                                                    DateTime      @default(now()) @db.Timestamp(0)
+  opportunity_stage_updated_at                                                                    DateTime      @default(now()) @db.Timestamp(0)
+  opportunity                                                                                     Opportunity?  @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "osn_opp_fk")
+  status_master_opportunity_stage_notes_opportunity_stage_notes_current_status_idTostatus_master  StatusMaster? @relation("opportunity_stage_notes_opportunity_stage_notes_current_status_idTostatus_master", fields: [opportunity_stage_notes_current_status_id], references: [id], onDelete: Cascade, map: "osn_status_current_fk")
+  status_master_opportunity_stage_notes_opportunity_stage_notes_previous_status_idTostatus_master StatusMaster? @relation("opportunity_stage_notes_opportunity_stage_notes_previous_status_idTostatus_master", fields: [opportunity_stage_notes_previous_status_id], references: [id], onDelete: Cascade, map: "osn_status_prev_fk")
+
+  @@index([opportunity_id], map: "osn_opp_fk")
+  @@index([opportunity_stage_notes_current_status_id], map: "osn_status_current_fk")
+  @@index([opportunity_stage_notes_previous_status_id], map: "osn_status_prev_fk")
+}
+
+model otps {
+  id         BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  user_id    String    @db.VarChar(255)
+  otp        String    @db.VarChar(255)
+  expires_at DateTime  @db.Timestamp(0)
+  created_at DateTime? @db.Timestamp(0)
+  updated_at DateTime? @db.Timestamp(0)
+}
+
+model potential_candidate_document {
+  id                       Int                      @id @default(autoincrement())
+  potential_candidate_id   Int?
+  document_master_id       Int                      @db.UnsignedInt
+  start_date               DateTime?                @db.Date
+  end_date                 DateTime?                @db.Date
+  upload_document          String?                  @db.VarChar(255)
+  upload_name              String?                  @db.VarChar(255)
+  created_at               DateTime?                @db.Timestamp(0)
+  updated_at               DateTime?                @db.Timestamp(0)
+  deleted_at               DateTime?                @db.Timestamp(0)
+  status                   Boolean                  @default(true)
+  employee_document_master employee_document_master @relation(fields: [document_master_id], references: [id], onDelete: Cascade, map: "pcd_document_master_pk")
+  potential_candidate      PotentialCandidate?      @relation(fields: [potential_candidate_id], references: [id], onDelete: Cascade, map: "potential_candidate_fk")
+
+  @@index([document_master_id], map: "pcd_document_master_pk")
+  @@index([potential_candidate_id], map: "potential_candidate_fk")
+}
+
+model potential_candidate_education {
+  id                     Int                 @id @default(autoincrement())
+  potential_candidate_id Int?
+  institution            String?             @db.VarChar(50)
+  subject                String?             @db.VarChar(50)
+  start_date             DateTime?           @db.Date
+  end_date               DateTime?           @db.Date
+  degree                 String?             @db.VarChar(50)
+  grade                  String?             @db.VarChar(50)
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  potential_candidate    PotentialCandidate? @relation(fields: [potential_candidate_id], references: [id], onDelete: Cascade, map: "pce_potential_candidate_fk")
+
+  @@index([potential_candidate_id], map: "pce_potential_candidate_fk")
+}
+
+model potential_candidate_experience {
+  id                     Int                 @id @default(autoincrement())
+  potential_candidate_id Int?
+  company_name           String?             @db.VarChar(50)
+  location               String?             @db.VarChar(50)
+  job_position           String?             @db.VarChar(50)
+  start_date             DateTime?           @db.Date
+  end_date               DateTime?           @db.Date
+  created_at             DateTime?           @db.Timestamp(0)
+  updated_at             DateTime?           @db.Timestamp(0)
+  deleted_at             DateTime?           @db.Timestamp(0)
+  status                 Boolean             @default(true)
+  potential_candidate    PotentialCandidate? @relation(fields: [potential_candidate_id], references: [id], onDelete: Cascade, map: "potential_candidates_fk")
+
+  @@index([potential_candidate_id], map: "potential_candidates_fk")
+}
+
+model potential_candidate_history {
+  id                Int                                            @id @default(autoincrement())
+  table_name        String?                                        @db.VarChar(100)
+  modified_id       Int?
+  modified_value    String?                                        @db.LongText
+  type_of_operation potential_candidate_history_type_of_operation?
+  modified_date     DateTime?                                      @db.DateTime(0)
+  modified_by       String?                                        @db.VarChar(50)
+  created_at        DateTime                                       @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                                       @db.DateTime(0)
+}
+
+model project_documents {
+  id                    Int                @id @default(autoincrement())
+  project_management_id Int?
+  document_link         String?            @db.VarChar(100)
+  document_name         String?            @db.VarChar(100)
+  created_at            DateTime?          @db.Timestamp(0)
+  updated_at            DateTime?          @db.Timestamp(0)
+  deleted_at            DateTime?          @db.Timestamp(0)
+  status                Int                @default(1)
+  project_management    ProjectManagement? @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pd_project_fk")
+
+  @@index([project_management_id], map: "pd_project_fk")
+}
+
+model project_expense_history {
+  id                Int                                        @id @default(autoincrement())
+  table_name        String?                                    @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                                    @db.LongText
+  type_of_operation project_expense_history_type_of_operation?
+  modified_date     DateTime?                                  @db.DateTime(0)
+  modified_by       String?                                    @db.VarChar(50)
+  created_at        DateTime                                   @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                                   @default(now()) @db.Timestamp(0)
+}
+
+model project_history {
+  id                Int                                @id @default(autoincrement())
+  table_name        String?                            @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                            @db.LongText
+  type_of_operation project_history_type_of_operation?
+  modified_date     DateTime?                          @db.DateTime(0)
+  modified_by       String?                            @db.VarChar(50)
+  created_at        DateTime                           @default(now()) @db.Timestamp(0)
+  updated_at        DateTime                           @default(now()) @db.Timestamp(0)
+}
+
+model project_management_resource_assignment {
+  id                             Int                                                   @id @default(autoincrement())
+  project_management_id          Int?
+  resource_id                    String?                                               @db.VarChar(50)
+  resource_table_name            String?                                               @db.VarChar(50)
+  resource_type                  project_management_resource_assignment_resource_type?
+  resource_role_id               Int?
+  is_project_outsourced          Int?
+  status                         Boolean?
+  resource_assignment_created_at DateTime                                              @default(now()) @db.Timestamp(0)
+  resource_assignment_updated_at DateTime                                              @default(now()) @db.Timestamp(0)
+  duration_start_date            DateTime?                                             @db.Timestamp(0)
+  duration_end_date              DateTime?                                             @db.Timestamp(0)
+  duration_in_months             Int?
+  replacement_id                 String?                                               @db.VarChar(50)
+  replacement_date               DateTime?                                             @default(now()) @db.Timestamp(0)
+  project_assignment_date        DateTime?                                             @db.Timestamp(0)
+  project_management             ProjectManagement?                                    @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pra_project_fk")
+  role_master                    RoleMaster?                                           @relation(fields: [resource_role_id], references: [id], onDelete: Cascade, map: "pra_role_fk")
+
+  @@index([project_management_id], map: "pra_project_fk")
+  @@index([resource_role_id], map: "pra_role_fk")
+}
+
+model project_milestones {
+  id                                     Int                                      @id @default(autoincrement())
+  project_management_id                  Int?
+  milestone_name                         String?                                  @db.VarChar(20)
+  milestone_description                  String?                                  @db.VarChar(50)
+  milestone_due_date                     DateTime?                                @db.Timestamp(0)
+  milestone_to_date                      DateTime?                                @db.Timestamp(0)
+  milestone_task_id                      String?                                  @db.VarChar(50)
+  quarter_master_id                      Int?
+  status_master_id                       Int?
+  milestone_created_at                   DateTime                                 @default(now()) @db.Timestamp(0)
+  milestone_updated_at                   DateTime                                 @default(now()) @db.Timestamp(0)
+  project_milestone_deleted_at           DateTime?                                @db.Timestamp(0)
+  milestone_deleted_at                   DateTime?                                @db.Timestamp(0)
+  project_management                     ProjectManagement?                       @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pm_project_fk")
+  quarter_master                         quarter_master?                          @relation(fields: [quarter_master_id], references: [id], onDelete: Cascade, map: "pm_quater_fk")
+  status_master                          StatusMaster?                            @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "pm_status_fk")
+  project_sales_delivery_partner_invoice project_sales_delivery_partner_invoice[]
+  sales_invoice                          sales_invoice[]
+
+  @@index([project_management_id], map: "pm_project_fk")
+  @@index([quarter_master_id], map: "pm_quater_fk")
+  @@index([status_master_id], map: "pm_status_fk")
+}
+
+model project_revenue {
+  id                                                                                  Int               @id @default(autoincrement())
+  project_management_id                                                               Int
+  project_revenue_estimated_sales_amount                                              Float?            @db.Float
+  project_revenue_estimated_sales_currency                                            Int?
+  project_revenue_estimated_cost_amount                                               Float?            @db.Float
+  project_revenue_estimated_cost_currency                                             Int?
+  project_revenue_estimated_additional_cost_amount                                    Float?            @db.Float
+  project_revenue_estimated_additional_cost_currency                                  Int?
+  project_revenue_actual_sales_amount                                                 Float?            @db.Float
+  project_revenue_actual_sales_currency                                               Int?
+  project_revenue_actual_cost_of_project_amount                                       Float?            @db.Float
+  project_revenue_actual_cost_of_project_currency                                     Int?
+  project_revenue_actual_additional_cost_amount                                       Float             @db.Float
+  project_revenue_actual_additional_cost_currency                                     Int?
+  country_project_revenue_project_revenue_actual_additional_cost_currencyTocountry    CountryMaster?    @relation("project_revenue_project_revenue_actual_additional_cost_currencyTocountry", fields: [project_revenue_actual_additional_cost_currency], references: [id], onDelete: Cascade, map: "pr_aacurrency_fk")
+  country_project_revenue_project_revenue_estimated_additional_cost_currencyTocountry CountryMaster?    @relation("project_revenue_project_revenue_estimated_additional_cost_currencyTocountry", fields: [project_revenue_estimated_additional_cost_currency], references: [id], onDelete: Cascade, map: "pr_accurrency_fk")
+  country_project_revenue_project_revenue_actual_cost_of_project_currencyTocountry    CountryMaster?    @relation("project_revenue_project_revenue_actual_cost_of_project_currencyTocountry", fields: [project_revenue_actual_cost_of_project_currency], references: [id], onDelete: Cascade, map: "pr_apcurrency_fk")
+  country_project_revenue_project_revenue_estimated_cost_currencyTocountry            CountryMaster?    @relation("project_revenue_project_revenue_estimated_cost_currencyTocountry", fields: [project_revenue_estimated_cost_currency], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pr_eccurrency_fk")
+  country_project_revenue_project_revenue_estimated_sales_currencyTocountry           CountryMaster?    @relation("project_revenue_project_revenue_estimated_sales_currencyTocountry", fields: [project_revenue_estimated_sales_currency], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "pr_esccurrency_fk")
+  project_management                                                                  ProjectManagement @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "pr_project_fk")
+  country_project_revenue_project_revenue_actual_sales_currencyTocountry              CountryMaster?    @relation("project_revenue_project_revenue_actual_sales_currencyTocountry", fields: [project_revenue_actual_sales_currency], references: [id], onDelete: Cascade, map: "pr_scurrency_fk")
+
+  @@index([project_revenue_actual_additional_cost_currency], map: "pr_aacurrency_fk")
+  @@index([project_revenue_estimated_additional_cost_currency], map: "pr_accurrency_fk")
+  @@index([project_revenue_actual_cost_of_project_currency], map: "pr_apcurrency_fk")
+  @@index([project_revenue_estimated_cost_currency], map: "pr_eccurrency_fk")
+  @@index([project_revenue_estimated_sales_currency], map: "pr_escurrency_fk")
+  @@index([project_management_id], map: "pr_project_fk")
+  @@index([project_revenue_actual_sales_currency], map: "pr_scurrency_fk")
+}
+
+model project_sales_delivery_partner_invoice {
+  id                    Int                 @id @default(autoincrement())
+  invoice_number        String?             @db.VarChar(50)
+  invoice_amount        Int?
+  attachment            String?             @db.VarChar(100)
+  project_milestones_id Int?
+  invoice_type          String?             @db.VarChar(10)
+  status_master_id      Int?
+  invoice_created_at    DateTime            @default(now()) @db.Timestamp(0)
+  invoice_updated_at    DateTime            @default(now()) @db.Timestamp(0)
+  invoice_created_by    String?             @db.VarChar(50)
+  invoice_deleted_at    DateTime?           @db.Timestamp(0)
+  status                Boolean?
+  project_milestones    project_milestones? @relation(fields: [project_milestones_id], references: [id], onDelete: Cascade, map: "psdpi_milestone_fk")
+  status_master         StatusMaster?       @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "psdpi_status_fk")
+
+  @@index([project_milestones_id], map: "psdpi_milestone_fk")
+  @@index([status_master_id], map: "psdpi_status_fk")
+}
+
+model quarter_master {
+  id                  Int                  @id @default(autoincrement())
+  quarter_name        String?              @db.VarChar(25)
+  quarter_description String?              @db.VarChar(50)
+  quarter_from_month  Int?
+  quarter_to_month    Int?
+  status              Boolean?             @default(true)
+  quarter_created_at  DateTime?            @default(now()) @db.Timestamp(0)
+  quarter_updated_at  DateTime             @default(now()) @db.Timestamp(0)
+  quarter_deleted_at  DateTime?            @db.Timestamp(0)
+  quarter_created_by  String?              @db.VarChar(50)
+  quarter_updated_by  String?              @db.VarChar(50)
+  project_milestones  project_milestones[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model regions {
+  id           Int          @id @default(autoincrement()) @db.UnsignedMediumInt
+  name         String       @db.VarChar(100)
+  translations String?      @db.Text
+  created_at   DateTime?    @db.Timestamp(0)
+  updated_at   DateTime     @default(now()) @db.Timestamp(0)
+  flag         Boolean      @default(true)
+  wikiDataId   String?      @db.VarChar(255)
+  countries    countries[]
+  subregions   subregions[]
+}
+
+model resource_role_master {
+  id                        Int       @id @default(autoincrement())
+  resource_role_name        String?   @db.VarChar(50)
+  resource_role_description String?   @db.VarChar(50)
+  role_experience           Int?
+  resource_role_created_at  DateTime? @default(now()) @db.Timestamp(0)
+  resource_role_updated_at  DateTime? @default(now()) @db.Timestamp(0)
+  resource_role_deleted_at  DateTime? @db.Timestamp(0)
+  resource_role_created_by  Int?
+  resource_role_updated_by  Int?
+  status                    Boolean?  @default(true)
+}
+
+model sales_expense {
+  id                       Int                @id @default(autoincrement())
+  project_management_id    Int?
+  opportunity_id           Int?
+  expense_master_id        Int?
+  estimated_expense_amount Float?             @db.Float
+  actual_expense_amount    Float?             @db.Float
+  added_by                 Int?
+  sales_expense_created_at DateTime           @default(now()) @db.Timestamp(0)
+  sales_expense_attachment String?            @db.VarChar(50)
+  sales_expense_updated_at DateTime           @default(now()) @db.Timestamp(0)
+  sales_expense_updated_by Int?
+  status_master_id         Int?
+  expense_master           expense_master?    @relation(fields: [expense_master_id], references: [id], onDelete: Cascade, map: "se_expense_master_fk")
+  opportunity              Opportunity?       @relation(fields: [opportunity_id], references: [id], onDelete: Cascade, map: "se_opp_fk")
+  project_management       ProjectManagement? @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "se_project_fk")
+  status_master            StatusMaster?      @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "se_status_master_fk")
+
+  @@index([expense_master_id], map: "se_expense_master_fk")
+  @@index([opportunity_id], map: "se_opp_fk")
+  @@index([project_management_id], map: "se_project_fk")
+  @@index([status_master_id], map: "se_status_master_fk")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model sales_invoice {
+  id                                  Int                                       @id @default(autoincrement())
+  sales_invoice_number                String                                    @db.VarChar(25)
+  sales_type                          String?                                   @db.VarChar(50)
+  invoice_type                        String?                                   @db.VarChar(10)
+  invoice_number                      String?                                   @db.VarChar(50)
+  sales_currency                      Int?
+  client_id                           Int?
+  project_management_id               Int?
+  project_milestones_id               Int?
+  sales_tax                           sales_invoice_sales_tax?
+  sales_invoice_date                  DateTime                                  @default(now()) @db.Timestamp(0)
+  client_billing_address              String?                                   @db.VarChar(20)
+  invoice_billing_cycle_type          sales_invoice_invoice_billing_cycle_type?
+  sales_billing_cycle                 Int?
+  sales_attachement                   String?                                   @db.VarChar(100)
+  sales_attachement_name              String?                                   @db.VarChar(100)
+  client_discount_id                  Int?
+  sales_discount_amount               Float?                                    @db.Float
+  base_currency_sales_discount_amount Float                                     @db.Float
+  sales_invoice_total                 Float                                     @default(0) @db.Float
+  base_currency_sales_invoice_total   Float                                     @db.Float
+  invoice_grand_total                 Float                                     @db.Float
+  base_currency_invoice_grand_total   Float                                     @db.Float
+  invoice_vat_amount                  Float?                                    @db.Float
+  base_currency_invoice_vat_amount    Float                                     @db.Float
+  status_master_id                    Int?
+  sales_invoice_reason                String?                                   @db.VarChar(255)
+  sales_invoice_created_at            DateTime?                                 @default(now()) @db.Timestamp(0)
+  sales_invoice_updated_at            DateTime?                                 @default(now()) @db.Timestamp(0)
+  sales_invoice_deleted_at            DateTime?                                 @db.Timestamp(0)
+  status                              Boolean                                   @default(true)
+  created_by                          String?                                   @db.VarChar(50)
+  client_discount_master              client_discount_master?                   @relation(fields: [client_discount_id], references: [id], onDelete: Cascade, map: "si_client_discount_master_fk")
+  clients                             clients?                                  @relation(fields: [client_id], references: [id], onDelete: Cascade, map: "si_client_fk")
+  country                             CountryMaster?                            @relation(fields: [sales_currency], references: [id], onDelete: Cascade, map: "si_currency_fk")
+  project_management                  ProjectManagement?                        @relation(fields: [project_management_id], references: [id], onDelete: Cascade, map: "si_project_fk")
+  project_milestones                  project_milestones?                       @relation(fields: [project_milestones_id], references: [id], onDelete: Cascade, map: "si_project_mile_fk")
+  status_master                       StatusMaster?                             @relation(fields: [status_master_id], references: [id], onDelete: Cascade, map: "si_status_master_fk")
+  sales_invoice_task                  sales_invoice_task[]
+
+  @@index([client_discount_id], map: "si_client_discount_master_fk")
+  @@index([client_id], map: "si_client_fk")
+  @@index([sales_currency], map: "si_currency_fk")
+  @@index([project_management_id], map: "si_project_fk")
+  @@index([project_milestones_id], map: "si_project_mile_fk")
+  @@index([status_master_id], map: "si_status_master_fk")
+}
+
+model sales_invoice_task {
+  id                            Int            @id @default(autoincrement())
+  sale_invoice_id               Int
+  project_task_id               Int?
+  sales_employee_id             String?        @db.VarChar(50)
+  invoice_days                  Int
+  pending_invoice_days          Int
+  sales_amount                  Float          @db.Float
+  sales_currency                Int?
+  consultation_rate             Float?         @default(0) @db.Float
+  sales_invoice_created_at      DateTime       @default(now()) @db.Timestamp(0)
+  sales_invoice_updated_at      DateTime       @default(now()) @db.Timestamp(0)
+  sales_invoice_task_deleted_at DateTime?      @db.Timestamp(0)
+  country                       CountryMaster? @relation(fields: [sales_currency], references: [id], onDelete: Cascade, map: "sit_currency_fk")
+  project_task                  ProjectTask?   @relation(fields: [project_task_id], references: [id], onDelete: Cascade, map: "sit_project_task_fk")
+  sales_invoice                 sales_invoice  @relation(fields: [sale_invoice_id], references: [id], onDelete: Cascade, map: "sit_sale_invoice_fk")
+
+  @@index([sales_currency], map: "sit_currency_fk")
+  @@index([project_task_id], map: "sit_project_task_fk")
+  @@index([sale_invoice_id], map: "sit_sale_invoice_fk")
+}
+
+model service_delivery_partner_resource_rate {
+  id                  Int               @id @default(autoincrement())
+  vendor_id           Int
+  designation_id      Int
+  years_of_experience Int?
+  resource_amount     Float             @default(0) @db.Float
+  resource_currency   Int?
+  conversion_rate     Float?            @default(1) @db.Float
+  created_at          DateTime          @default(now()) @db.Timestamp(0)
+  updated_at          DateTime          @default(now()) @db.Timestamp(0)
+  deleted_at          DateTime?         @db.Timestamp(0)
+  status              Boolean           @default(true)
+  country             CountryMaster?    @relation(fields: [resource_currency], references: [id], onDelete: Cascade, map: "sdprr_currency_fk")
+  designation_master  DesignationMaster @relation(fields: [designation_id], references: [id], onDelete: Cascade, map: "sdprr_designation_fk")
+  vendors             vendors           @relation(fields: [vendor_id], references: [id], onDelete: Cascade, map: "sdprr_vendor_fk")
+
+  @@index([resource_currency], map: "sdprr_currency_fk")
+  @@index([designation_id], map: "sdprr_designation_fk")
+  @@index([vendor_id], map: "sdprr_vendor_fk")
+}
+
+model service_delivery_partner_service_rate {
+  id                                            Int            @id @default(autoincrement())
+  vendors_id                                    Int?
+  service_master_id                             Int
+  service_delivery_partner_rate_amount          Float          @db.Float
+  status                                        Boolean
+  service_delivery_partner_rate_amount_currency Int?
+  service_delivery_partner_rate_conversion_rate Float?         @db.Float
+  service_delivery_partner_rate_created_at      DateTime       @default(now()) @db.Timestamp(0)
+  service_delivery_partner_rate_updated_at      DateTime       @default(now()) @db.Timestamp(0)
+  service_delivery_partner_rate_deleted_at      DateTime?      @db.Timestamp(0)
+  country                                       CountryMaster? @relation(fields: [service_delivery_partner_rate_amount_currency], references: [id], onDelete: Cascade, map: "sdpsr_currency_fk")
+  service_master                                ServiceMaster  @relation(fields: [service_master_id], references: [id], onDelete: Cascade, map: "sdpsr_service_fk")
+  vendors                                       vendors?       @relation(fields: [vendors_id], references: [id], onDelete: Cascade, map: "sdpsr_vendor_fk")
+
+  @@index([service_delivery_partner_rate_amount_currency], map: "sdpsr_currency_fk")
+  @@index([service_master_id], map: "sdpsr_service_fk")
+  @@index([vendors_id], map: "sdpsr_vendor_fk")
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model states {
+  id                  Int                  @id @default(autoincrement()) @db.UnsignedInt
+  name                String               @db.VarChar(255)
+  country_id          Int                  @db.UnsignedMediumInt
+  country_code        String               @db.Char(2)
+  fips_code           String?              @db.VarChar(255)
+  iso2                String?              @db.VarChar(255)
+  type                String?
+  latitude            Decimal?             @db.Decimal(10, 8)
+  longitude           Decimal?             @db.Decimal(11, 8)
+  created_at          DateTime?            @db.Timestamp(0)
+  updated_at          DateTime             @default(now()) @db.Timestamp(0)
+  flag                Boolean              @default(true)
+  wikiDataId          String?              @db.VarChar(255)
+  clients             clients[]
+  employee_onboarding EmployeeOnboarding[]
+  potential_candidate PotentialCandidate[]
+  vendors             vendors[]
+}
+
+/// This model or at least one of its fields has comments in the database, and requires an additional setup for migrations: Read more: https://pris.ly/d/database-comments
+model subregions {
+  id           Int         @id @default(autoincrement()) @db.UnsignedMediumInt
+  name         String      @db.VarChar(100)
+  translations String?     @db.Text
+  region_id    Int         @db.UnsignedMediumInt
+  created_at   DateTime?   @db.Timestamp(0)
+  updated_at   DateTime    @default(now()) @db.Timestamp(0)
+  flag         Boolean     @default(true)
+  wikiDataId   String?     @db.VarChar(255)
+  countries    countries[]
+  regions      regions     @relation(fields: [region_id], references: [id], onDelete: NoAction, onUpdate: NoAction, map: "subregion_continent_final")
+
+  @@index([region_id], map: "subregion_continent")
+}
+
+model users {
+  id                BigInt    @id @default(autoincrement()) @db.UnsignedBigInt
+  name              String    @db.VarChar(255)
+  email             String    @unique(map: "users_email_unique") @db.VarChar(255)
+  email_verified_at DateTime? @db.Timestamp(0)
+  password          String    @db.VarChar(255)
+  remember_token    String?   @db.VarChar(100)
+  created_at        DateTime? @db.Timestamp(0)
+  updated_at        DateTime? @db.Timestamp(0)
+}
+
+model users_copy {
+  id                    Int       @id @default(autoincrement())
+  uid                   String    @db.VarChar(50)
+  name                  String    @db.VarChar(25)
+  email                 String    @db.VarChar(25)
+  role_master_id        Int
+  team_master_id        Int?
+  designation_master_id Int?
+  created_at            DateTime? @db.Timestamp(0)
+  updated_at            DateTime? @db.Timestamp(0)
+  deleted_at            DateTime? @db.Timestamp(0)
+  status_master_id      Int       @default(1) @db.TinyInt
+}
+
+model vat_master {
+  id              Int               @id @default(autoincrement())
+  vat_type        String            @db.VarChar(100)
+  status          Boolean           @default(true)
+  vat_created_at  DateTime?         @default(now()) @db.Timestamp(0)
+  vat_updated_at  DateTime          @default(now()) @db.Timestamp(0)
+  vat_deleted_at  DateTime?         @db.Timestamp(0)
+  vat_created_by  Int?
+  vat_updated_by  Int?
+  countrywise_vat countrywise_vat[]
+}
+
+model vendor_history {
+  id                Int                               @id @default(autoincrement())
+  table_name        String?                           @db.VarChar(50)
+  modified_id       Int?
+  modified_value    String?                           @db.LongText
+  type_of_operation vendor_history_type_of_operation?
+  modified_date     DateTime?                         @db.DateTime(0)
+  modified_by       String?                           @db.VarChar(50)
+  created_at        DateTime                          @default(now()) @db.DateTime(0)
+  updated_at        DateTime                          @default(now()) @db.DateTime(0)
+}
+
+model vendors {
+  id                                           Int                                            @id @default(autoincrement())
+  service_delivery_id                          String                                         @db.VarChar(50)
+  vendor_name                                  String                                         @db.VarChar(50)
+  vendor_website                               String?                                        @db.VarChar(50)
+  work_location                                Int?
+  work_address                                 String?                                        @db.VarChar(50)
+  vendor_state_id                              Int?                                           @db.UnsignedInt
+  vendor_city_id                               Int?                                           @db.UnsignedInt
+  vendor_type                                  vendors_vendor_type?
+  contact_number                               String?                                        @db.VarChar(15)
+  created_at                                   DateTime?                                      @db.Timestamp(0)
+  updated_at                                   DateTime?                                      @db.Timestamp(0)
+  deleted_at                                   DateTime?                                      @db.Timestamp(0)
+  status                                       Boolean                                        @default(true)
+  employee_onboarding                          EmployeeOnboarding[]
+  opportunity                                  Opportunity[]
+  opportunity_service_delivery_partner_details opportunity_service_delivery_partner_details[]
+  project_management                           ProjectManagement[]
+  service_delivery_partner_resource_rate       service_delivery_partner_resource_rate[]
+  service_delivery_partner_service_rate        service_delivery_partner_service_rate[]
+  contacts                                     VendorContactDetails[]
+  cities                                       cities?                                        @relation(fields: [vendor_city_id], references: [id], onDelete: Cascade, map: "v_city_fk")
+  country                                      CountryMaster?                                 @relation(fields: [work_location], references: [id], onDelete: Cascade, map: "v_country_fk")
+  states                                       states?                                        @relation(fields: [vendor_state_id], references: [id], onDelete: Cascade, map: "v_state_fk")
+
+  @@index([vendor_city_id], map: "v_city_fk")
+  @@index([work_location], map: "v_country_fk")
+  @@index([vendor_state_id], map: "v_state_fk")
+}
+
+model widget_master {
+  id                 Int                       @id @default(autoincrement())
+  widget_name        String                    @db.VarChar(100)
+  widget_icon        String?                   @db.VarChar(255)
+  widget_type        widget_master_widget_type
+  widget_created_at  DateTime                  @default(now()) @db.Timestamp(0)
+  widget_updated_at  DateTime                  @default(now()) @db.Timestamp(0)
+  widget_deleted_at  DateTime?                 @db.Timestamp(0)
+  status             Boolean                   @default(true)
+  widget_role        widget_role[]
+  widget_role_access widget_role_access[]
+}
+
+model widget_role {
+  id                Int           @id @default(autoincrement())
+  widget_id         Int
+  widget_role_id    Int
+  widget_created_at DateTime      @default(now()) @db.Timestamp(0)
+  widget_updated_at DateTime      @default(now()) @db.Timestamp(0)
+  widget_deleted_at DateTime?     @db.Timestamp(0)
+  status            Boolean       @default(true)
+  widget_master     widget_master @relation(fields: [widget_id], references: [id], onDelete: Cascade, map: "wr_widget_fk")
+  role_master       RoleMaster    @relation(fields: [widget_role_id], references: [id], onDelete: Cascade, map: "wr_widget_role_fk")
+
+  @@index([widget_id], map: "wr_widget_fk")
+  @@index([widget_role_id], map: "wr_widget_role_fk")
+}
+
+model widget_role_access {
+  id                Int           @id @default(autoincrement())
+  uid               String        @db.VarChar(100)
+  widget_id         Int
+  widget_created_at DateTime      @default(now()) @db.Timestamp(0)
+  widget_updated_at DateTime      @default(now()) @db.Timestamp(0)
+  widget_deleted_at DateTime?     @db.Timestamp(0)
+  status            Boolean       @default(true)
+  widget_master     widget_master @relation(fields: [widget_id], references: [id], onDelete: Cascade, map: "wra_widget_fk")
+
+  @@index([widget_id], map: "wra_widget_fk")
+}
+
+enum widget_master_widget_type {
+  counter
+  report
+  earning
+  revenue
+  leaveStats
+  salesPipeline
+  pipelineFunnel
+  speedometer1
+  speedometer2
+  lineChart
+  barChart
+  accountOppo
+  donut
+  annualAnalysis
+  business
+}
+
+enum client_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum employee_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum file_upload_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum invoice_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum leave_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum master_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum opportunity_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum potential_candidate_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum project_expense_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum project_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum project_management_resource_assignment_resource_type {
+  Internal
+  External
+}
+
+enum vendor_history_type_of_operation {
+  insert
+  update
+  delete
+}
+
+enum menu_master_position {
+  Header
+  LeftNav
+  Footer
+}
+
+enum menu_master_type {
+  Menu
+  SubMenu
+  Tab
+}
+
+enum vendor_contact_details_gender {
+  Male
+  Female
+}
+
+enum client_resource_rate_client_resource_rate_billing_type {
+  Monthly
+  Quaterly
+  Bi_Yearly
+  Annually
+}
+
+enum clients_personal_details_gender {
+  Male
+  Female
+}
+
+enum vendors_vendor_type {
+  Recruiter
+  Supplier
+}
+
+enum sales_invoice_sales_tax {
+  tax
+  no_tax @map("no tax")
+}
+
+enum sales_invoice_invoice_billing_cycle_type {
+  Monthly
+  Quarterly
+  Annually
+}
+
+enum potential_candidate_engagement_method {
+  remote
+  onsite
+}
+
+enum employee_onboarding_employee_type {
+  Internal
+  External
+}
+
+enum employee_onboarding_engagement_method {
+  remote
+  onsite
+}
+
+// ============================================
+// PROJECT MANAGEMENT MODULE - Added $(date +"%Y-%m-%d")
+// ============================================
+
+// Task Statuses Master Data
+model TaskStatus {
+  id          Int      @id @default(autoincrement())
+  name        String   @db.VarChar(100)
+  code        String   @unique @db.VarChar(50)
+  description String?  @db.Text
+  color       String   @db.VarChar(20)
+  icon        String?  @db.VarChar(50)
+  order       Int      @default(0)
+  is_final    Boolean  @default(false)
+  status      Boolean  @default(true)
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  tasks Task[]
+
+  @@map("task_statuses")
+}
+
+// Task Priorities Master Data
+model TaskPriority {
+  id         Int      @id @default(autoincrement())
+  name       String   @db.VarChar(100)
+  code       String   @unique @db.VarChar(50)
+  color      String   @db.VarChar(20)
+  order      Int      @default(0)
+  status     Boolean  @default(true)
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  tasks Task[]
+
+  @@map("task_priorities")
+}
+
+// Enhanced Task Management
+model Task {
+  id              Int       @id @default(autoincrement())
+  task_code       String    @unique @db.VarChar(50)
+  project_id      Int
+  title           String    @db.VarChar(500)
+  description     String?   @db.Text
+  assigned_to     String?   @db.VarChar(100)
+  created_by      String    @db.VarChar(100)
+  status_id       Int
+  priority_id     Int?
+  estimated_hours Decimal?  @db.Decimal(10, 2)
+  actual_hours    Decimal?  @db.Decimal(10, 2)
+  start_date      DateTime?
+  due_date        DateTime?
+  completed_at    DateTime?
+  parent_id       Int?
+  created_at      DateTime  @default(now())
+  updated_at      DateTime  @updatedAt
+  deleted_at      DateTime?
+
+  // Relations
+  project       ProjectManagement @relation(fields: [project_id], references: [id])
+  assignee      EmployeeOnboarding? @relation("TaskAssignee", fields: [assigned_to], references: [uid])
+ creator       EmployeeOnboarding  @relation("TaskCreator", fields: [created_by], references: [uid])
+  taskStatus    TaskStatus          @relation(fields: [status_id], references: [id])
+  priority      TaskPriority?       @relation(fields: [priority_id], references: [id])
+  parent        Task?               @relation("TaskHierarchy", fields: [parent_id], references: [id])
+  
+  // Child relations
+  subtasks      Task[]              @relation("TaskHierarchy")
+  comments      TaskComment[]
+  attachments   TaskAttachment[]
+  activityLogs  TaskActivity[]
+  timesheets    Timesheet[]
+
+  @@index([project_id])
+  @@index([assigned_to])
+  @@index([status_id])
+  @@index([created_by])
+  @@map("tasks")
+}
+
+// Task Comments
+model TaskComment {
+  id         Int       @id @default(autoincrement())
+  task_id    Int
+  comment    String    @db.Text
+  created_by String    @db.VarChar(100)
+  created_at DateTime  @default(now())
+  updated_at DateTime  @updatedAt
+  deleted_at DateTime?
+
+  task   Task               @relation(fields: [task_id], references: [id])
+  author EmployeeOnboarding @relation(fields: [created_by], references: [uid])
+
+  @@index([task_id])
+  @@map("task_comments")
+}
+
+// Task Attachments
+model TaskAttachment {
+  id          Int       @id @default(autoincrement())
+  task_id     Int
+  file_name   String    @db.VarChar(255)
+  file_path   String    @db.VarChar(500)
+  file_size   Int?
+  file_type   String?   @db.VarChar(100)
+  uploaded_by String    @db.VarChar(100)
+  created_at  DateTime  @default(now())
+  deleted_at  DateTime?
+
+  task     Task               @relation(fields: [task_id], references: [id])
+  uploader EmployeeOnboarding @relation(fields: [uploaded_by], references: [uid])
+
+  @@index([task_id])
+  @@map("task_attachments")
+}
+
+// Task Activity Log
+model TaskActivity {
+  id            Int      @id @default(autoincrement())
+  task_id       Int
+  action        String   @db.VarChar(100)
+  field_changed String?  @db.VarChar(100)
+  old_value     String?  @db.Text
+  new_value     String?  @db.Text
+  performed_by  String   @db.VarChar(100)
+  created_at    DateTime @default(now())
+
+  task Task               @relation(fields: [task_id], references: [id])
+  user EmployeeOnboarding @relation(fields: [performed_by], references: [uid])
+
+  @@index([task_id])
+  @@index([performed_by])
+  @@map("task_activities")
+}
+
+// Timesheet Status Enum
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// Timesheets
+model Timesheet {
+  id               Int              @id @default(autoincrement())
+  entry_code       String           @unique @db.VarChar(100)
+  employee_id      String           @db.VarChar(100)
+  project_id       Int
+  task_id          Int?
+  work_date        DateTime
+  hours            Decimal          @db.Decimal(10, 2)
+  description      String?          @db.Text
+  is_billable      Boolean          @default(true)
+  status           TimesheetStatus  @default(DRAFT)
+  submitted_at     DateTime?
+  approved_at      DateTime?
+  rejected_at      DateTime?
+  approved_by      String?          @db.VarChar(100)
+  rejection_reason String?          @db.Text
+  created_at       DateTime         @default(now())
+  updated_at       DateTime         @updatedAt
+  deleted_at       DateTime?
+
+  employee EmployeeOnboarding  @relation("TimesheetEmployee", fields: [employee_id], references: [uid])
+  project  ProjectManagement   @relation(fields: [project_id], references: [id])
+  task     Task?               @relation(fields: [task_id], references: [id])
+  approver EmployeeOnboarding? @relation("TimesheetApprover", fields: [approved_by], references: [uid])
+
+  @@index([employee_id])
+  @@index([project_id])
+  @@index([task_id])
+  @@index([work_date])
+  @@map("timesheets")
+}
+
+// Resource Allocation
+model ResourceAllocation {
+  id                 Int       @id @default(autoincrement())
+  project_id         Int
+  employee_id        String    @db.VarChar(100)
+  allocation_percent Decimal   @db.Decimal(5, 2)
+  role_in_project    String?   @db.VarChar(200)
+  hourly_rate        Decimal?  @db.Decimal(10, 2)
+  start_date         DateTime
+  end_date           DateTime?
+  status             Boolean   @default(true)
+  created_by         String    @db.VarChar(100)
+  created_at         DateTime  @default(now())
+  updated_at         DateTime  @updatedAt
+  deleted_at         DateTime?
+
+  project  ProjectManagement  @relation(fields: [project_id], references: [id])
+  employee EmployeeOnboarding @relation("ResourceAllocationEmployee", fields: [employee_id], references: [uid])
+  creator  EmployeeOnboarding @relation("ResourceAllocationCreator", fields: [created_by], references: [uid])
+
+  @@index([project_id])
+  @@index([employee_id])
+  @@map("resource_allocations")
+}
+
+// Project Team Members
+model ProjectTeamMember {
+  id          Int      @id @default(autoincrement())
+  project_id  Int
+  employee_id String   @db.VarChar(100)
+  role        String?  @db.VarChar(200)
+  joined_at   DateTime @default(now())
+
+  project  ProjectManagement  @relation(fields: [project_id], references: [id])
+  employee EmployeeOnboarding @relation(fields: [employee_id], references: [uid])
+
+  @@unique([project_id, employee_id])
+  @@map("project_team_members")
+}

@@ -1,0 +1,255 @@
+// =============================================================================
+// PROJECT MANAGEMENT MODULE - ENHANCED SCHEMA
+// =============================================================================
+
+// Task Status Master
+model TaskStatus {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(50) // To Do, In Progress, Review, Blocked, Done
+  code        String    @unique @db.VarChar(20) // TODO, IN_PROGRESS, REVIEW, BLOCKED, DONE
+  description String?   @db.VarChar(200)
+  color       String    @db.VarChar(7) // Hex color for UI
+  icon        String?   @db.VarChar(50) // Icon name
+  order       Int       // Display order
+  is_final    Boolean   @default(false) // Is this a terminal state?
+  created_at  DateTime  @default(now())
+  updated_at  DateTime  @updatedAt
+  status      Boolean   @default(true)
+  
+  tasks       Task[]
+  
+  @@map("task_statuses")
+}
+
+// Task Priority Master
+model TaskPriority {
+  id          Int       @id @default(autoincrement())
+  name        String    @db.VarChar(50) // Low, Medium, High, Critical
+  code        String    @unique @db.VarChar(20)
+  color       String    @db.VarChar(7)
+  order       Int
+  created_at  DateTime  @default(now())
+  status      Boolean   @default(true)
+  
+  tasks       Task[]
+  
+  @@map("task_priorities")
+}
+
+// Enhanced Task Model
+model Task {
+  id                  Int                 @id @default(autoincrement())
+  task_code           String              @unique @db.VarChar(50)
+  project_id          Int
+  title               String              @db.VarChar(255)
+  description         String?             @db.Text
+  
+  // Assignment
+  assigned_to         String?             @db.VarChar(50) // employee.uid
+  created_by          String              @db.VarChar(50)
+  
+  // Status & Priority
+  status_id           Int
+  priority_id         Int?
+  
+  // Time tracking
+  estimated_hours     Decimal?            @db.Decimal(10,2)
+  actual_hours        Decimal?            @db.Decimal(10,2)
+  
+  // Dates
+  start_date          DateTime?
+  due_date            DateTime?
+  completed_at        DateTime?
+  
+  // Hierarchy (for subtasks)
+  parent_id           Int?
+  
+  // Metadata
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+  deleted_at          DateTime?
+  
+  // Relations
+  project             ProjectManagement   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  assignee            EmployeeOnboarding? @relation("TaskAssignee", fields: [assigned_to], references: [uid], onDelete: SetNull)
+  creator             EmployeeOnboarding  @relation("TaskCreator", fields: [created_by], references: [uid])
+  taskStatus          TaskStatus          @relation(fields: [status_id], references: [id])
+  priority            TaskPriority?       @relation(fields: [priority_id], references: [id])
+  
+  // Self-referential for subtasks
+  parent              Task?               @relation("TaskHierarchy", fields: [parent_id], references: [id], onDelete: Cascade)
+  subtasks            Task[]              @relation("TaskHierarchy")
+  
+  // Child relations
+  comments            TaskComment[]
+  attachments         TaskAttachment[]
+  timesheets          Timesheet[]
+  activityLogs        TaskActivity[]
+  
+  @@index([project_id])
+  @@index([assigned_to])
+  @@index([status_id])
+  @@index([created_by])
+  @@index([due_date])
+  @@map("tasks")
+}
+
+// Task Comments
+model TaskComment {
+  id          Int                 @id @default(autoincrement())
+  task_id     Int
+  comment     String              @db.Text
+  created_by  String              @db.VarChar(50)
+  created_at  DateTime            @default(now())
+  updated_at  DateTime            @updatedAt
+  deleted_at  DateTime?
+  
+  task        Task                @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  author      EmployeeOnboarding  @relation(fields: [created_by], references: [uid])
+  
+  @@index([task_id])
+  @@index([created_by])
+  @@map("task_comments")
+}
+
+// Task Attachments
+model TaskAttachment {
+  id              Int                 @id @default(autoincrement())
+  task_id         Int
+  file_name       String              @db.VarChar(255)
+  file_path       String              @db.VarChar(500)
+  file_size       Int                 // bytes
+  file_type       String              @db.VarChar(100)
+  uploaded_by     String              @db.VarChar(50)
+  created_at      DateTime            @default(now())
+  deleted_at      DateTime?
+  
+  task            Task                @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  uploader        EmployeeOnboarding  @relation(fields: [uploaded_by], references: [uid])
+  
+  @@index([task_id])
+  @@map("task_attachments")
+}
+
+// Task Activity Log
+model TaskActivity {
+  id              Int                 @id @default(autoincrement())
+  task_id         Int
+  action          String              @db.VarChar(100) // created, assigned, status_changed, etc.
+  field_changed   String?             @db.VarChar(100)
+  old_value       String?             @db.Text
+  new_value       String?             @db.Text
+  performed_by    String              @db.VarChar(50)
+  created_at      DateTime            @default(now())
+  
+  task            Task                @relation(fields: [task_id], references: [id], onDelete: Cascade)
+  user            EmployeeOnboarding  @relation(fields: [performed_by], references: [uid])
+  
+  @@index([task_id])
+  @@index([created_at])
+  @@map("task_activities")
+}
+
+// Timesheet Entry
+model Timesheet {
+  id                Int                 @id @default(autoincrement())
+  entry_code        String              @unique @db.VarChar(50)
+  employee_id       String              @db.VarChar(50)
+  project_id        Int
+  task_id           Int?
+  
+  // Time details
+  work_date         DateTime            @db.Date
+  hours             Decimal             @db.Decimal(5,2)
+  description       String?             @db.Text
+  
+  // Status workflow
+  status            TimesheetStatus     @default(DRAFT)
+  submitted_at      DateTime?
+  approved_at       DateTime?
+  rejected_at       DateTime?
+  approved_by       String?             @db.VarChar(50)
+  rejection_reason  String?            @db.Text
+  
+  // Billing
+  is_billable       Boolean             @default(true)
+  billing_rate      Decimal?            @db.Decimal(10,2)
+  
+  created_at        DateTime            @default(now())
+  updated_at        DateTime            @updatedAt
+  deleted_at        DateTime?
+  
+  // Relations
+  employee          EmployeeOnboarding  @relation("TimesheetEmployee", fields: [employee_id], references: [uid])
+  project           ProjectManagement   @relation(fields: [project_id], references: [id])
+  task              Task?               @relation(fields: [task_id], references: [id], onDelete: SetNull)
+  approver          EmployeeOnboarding? @relation("TimesheetApprover", fields: [approved_by], references: [uid])
+  
+  @@unique([employee_id, project_id, task_id, work_date])
+  @@index([employee_id])
+  @@index([project_id])
+  @@index([task_id])
+  @@index([work_date])
+  @@index([status])
+  @@map("timesheets")
+}
+
+enum TimesheetStatus {
+  DRAFT
+  SUBMITTED
+  APPROVED
+  REJECTED
+}
+
+// Resource Allocation
+model ResourceAllocation {
+  id                  Int                 @id @default(autoincrement())
+  project_id          Int
+  employee_id         String              @db.VarChar(50)
+  
+  // Allocation details
+  allocation_percent  Int                 // 0-100
+  role_in_project     String?             @db.VarChar(100) // Developer, QA, PM, etc.
+  hourly_rate         Decimal?            @db.Decimal(10,2)
+  
+  // Dates
+  start_date          DateTime
+  end_date            DateTime?
+  
+  // Metadata
+  created_by          String              @db.VarChar(50)
+  created_at          DateTime            @default(now())
+  updated_at          DateTime            @updatedAt
+  deleted_at          DateTime?
+  status              Boolean             @default(true)
+  
+  // Relations
+  project             ProjectManagement   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  employee            EmployeeOnboarding  @relation("ResourceAllocationEmployee", fields: [employee_id], references: [uid])
+  creator             EmployeeOnboarding  @relation("ResourceAllocationCreator", fields: [created_by], references: [uid])
+  
+  @@unique([project_id, employee_id, start_date])
+  @@index([project_id])
+  @@index([employee_id])
+  @@index([start_date])
+  @@map("resource_allocations")
+}
+
+// Project Team Member (simplified tracking)
+model ProjectTeamMember {
+  id              Int                 @id @default(autoincrement())
+  project_id      Int
+  employee_id     String              @db.VarChar(50)
+  role            String              @db.VarChar(100)
+  is_lead         Boolean             @default(false)
+  joined_at       DateTime            @default(now())
+  left_at         DateTime?
+  
+  project         ProjectManagement   @relation(fields: [project_id], references: [id], onDelete: Cascade)
+  employee        EmployeeOnboarding  @relation(fields: [employee_id], references: [uid])
+  
+  @@unique([project_id, employee_id])
+  @@index([project_id])
+  @@index([employee_id])
+  @@map("project_team_members")
+}
