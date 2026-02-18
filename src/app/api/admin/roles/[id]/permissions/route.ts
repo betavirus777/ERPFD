@@ -5,9 +5,9 @@ import { ROLES } from '@/lib/permissions';
 import { APIError } from '@/lib/api-response';
 
 interface RouteParams {
-  params: {
+  params: Promise<{
     id: string;
-  };
+  }>;
 }
 
 // Get permissions for a specific role
