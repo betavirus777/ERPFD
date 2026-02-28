@@ -1,6 +1,8 @@
 "use client"
 
 import React, { useEffect, useState, useCallback } from 'react'
+import { RouteGuard } from '@/components/auth/RouteGuard'
+import { PERMISSIONS } from '@/hooks/usePermission'
 import { ColumnDef } from "@tanstack/react-table"
 import { MainLayout } from '@/components/layout/MainLayout'
 import { DataTable, DataTableColumnHeader } from '@/components/ui/data-table'
@@ -112,7 +114,7 @@ export default function ExpensesPage() {
   const handleSave = async () => {
     try {
       setSaving(true)
-      
+
       const payload: any = {
         expenseDate: formData.expenseDate,
         category: formData.category,
@@ -140,7 +142,7 @@ export default function ExpensesPage() {
       const url = selectedExpense
         ? `/api/expenses/${selectedExpense.uid}`
         : '/api/expenses'
-      
+
       const response = await fetch(url, {
         method: selectedExpense ? 'PUT' : 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -148,7 +150,7 @@ export default function ExpensesPage() {
       })
 
       const data = await response.json()
-      
+
       if (data.success) {
         setDialogOpen(false)
         resetForm()
@@ -171,7 +173,7 @@ export default function ExpensesPage() {
       })
 
       const data = await response.json()
-      
+
       if (data.success) {
         setDeleteDialogOpen(false)
         setSelectedExpense(null)
@@ -260,7 +262,7 @@ export default function ExpensesPage() {
       cell: ({ row }) => {
         const status = row.getValue("status") as string
         const getStatusColor = () => {
-          switch(status.toLowerCase()) {
+          switch (status.toLowerCase()) {
             case 'approved': return 'bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400'
             case 'pending': return 'bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400'
             case 'rejected': return 'bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400'
@@ -313,196 +315,198 @@ export default function ExpensesPage() {
   ]
 
   return (
-    <MainLayout>
-      <div className="space-y-6">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
-              <Receipt className="w-8 h-8 text-blue-600" />
-              Expense Management
-            </h1>
-            <p className="text-gray-500 dark:text-gray-400 mt-1">
-              Track and manage employee expenses
-            </p>
+    <RouteGuard permission={PERMISSIONS.EXPENSE_VIEW}>
+      <MainLayout>
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white flex items-center gap-3">
+                <Receipt className="w-8 h-8 text-blue-600" />
+                Expense Management
+              </h1>
+              <p className="text-gray-500 dark:text-gray-400 mt-1">
+                Track and manage employee expenses
+              </p>
+            </div>
+            <div className="flex gap-2">
+              <Button variant="outline">
+                <Download className="w-4 h-4 mr-2" />
+                Export
+              </Button>
+              <Button
+                onClick={() => {
+                  resetForm()
+                  setDialogOpen(true)
+                }}
+                className="bg-[#1e3a5f] hover:bg-[#2d5a87]"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Add Expense
+              </Button>
+            </div>
           </div>
-          <div className="flex gap-2">
-            <Button variant="outline">
-              <Download className="w-4 h-4 mr-2" />
-              Export
-            </Button>
-            <Button 
-              onClick={() => {
-                resetForm()
-                setDialogOpen(true)
-              }}
-              className="bg-[#1e3a5f] hover:bg-[#2d5a87]"
-            >
-              <Plus className="w-4 h-4 mr-2" />
-              Add Expense
-            </Button>
+
+          {/* Stats Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Total Expenses</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                {expenses.length}
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Total Amount</div>
+              <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
+                ${expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Pending</div>
+              <div className="text-2xl font-bold text-yellow-600 mt-1">
+                {expenses.filter(e => e.status.toLowerCase() === 'pending').length}
+              </div>
+            </div>
+            <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
+              <div className="text-sm text-gray-500 dark:text-gray-400">Approved</div>
+              <div className="text-2xl font-bold text-green-600 mt-1">
+                {expenses.filter(e => e.status.toLowerCase() === 'approved').length}
+              </div>
+            </div>
+          </div>
+
+          {/* Data Table */}
+          <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
+            <DataTable
+              columns={columns}
+              data={expenses}
+              searchKey="description"
+              searchPlaceholder="Search expenses..."
+              isLoading={loading}
+            />
           </div>
         </div>
 
-        {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Expenses</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              {expenses.length}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Total Amount</div>
-            <div className="text-2xl font-bold text-gray-900 dark:text-white mt-1">
-              ${expenses.reduce((sum, exp) => sum + exp.amount, 0).toLocaleString()}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Pending</div>
-            <div className="text-2xl font-bold text-yellow-600 mt-1">
-              {expenses.filter(e => e.status.toLowerCase() === 'pending').length}
-            </div>
-          </div>
-          <div className="bg-white dark:bg-gray-800 rounded-lg border border-gray-200 dark:border-gray-700 p-4">
-            <div className="text-sm text-gray-500 dark:text-gray-400">Approved</div>
-            <div className="text-2xl font-bold text-green-600 mt-1">
-              {expenses.filter(e => e.status.toLowerCase() === 'approved').length}
-            </div>
-          </div>
-        </div>
+        {/* Add/Edit Dialog */}
+        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <DialogContent className="max-w-2xl">
+            <DialogHeader>
+              <DialogTitle>{selectedExpense ? 'Edit' : 'Add'} Expense</DialogTitle>
+              <DialogDescription>
+                {selectedExpense ? 'Update' : 'Create a new'} expense record
+              </DialogDescription>
+            </DialogHeader>
 
-        {/* Data Table */}
-        <div className="bg-white dark:bg-gray-800 rounded-xl border border-gray-200 dark:border-gray-700 overflow-hidden">
-          <DataTable
-            columns={columns}
-            data={expenses}
-            searchKey="description"
-            searchPlaceholder="Search expenses..."
-            isLoading={loading}
-          />
-        </div>
-      </div>
+            <div className="space-y-4 py-4">
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Expense Date</Label>
+                  <Input
+                    type="date"
+                    value={formData.expenseDate}
+                    onChange={(e) => setFormData(prev => ({ ...prev, expenseDate: e.target.value }))}
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Category</Label>
+                  <Select
+                    value={formData.category}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue placeholder="Select category" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {expenseCategories.map(cat => (
+                        <SelectItem key={cat} value={cat}>{cat}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-      {/* Add/Edit Dialog */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="max-w-2xl">
-          <DialogHeader>
-            <DialogTitle>{selectedExpense ? 'Edit' : 'Add'} Expense</DialogTitle>
-            <DialogDescription>
-              {selectedExpense ? 'Update' : 'Create a new'} expense record
-            </DialogDescription>
-          </DialogHeader>
+              <div className="grid grid-cols-2 gap-4">
+                <div className="space-y-2">
+                  <Label>Amount</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={formData.amount}
+                    onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
+                    placeholder="0.00"
+                  />
+                </div>
+                <div className="space-y-2">
+                  <Label>Currency</Label>
+                  <Select
+                    value={formData.currency}
+                    onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
+                  >
+                    <SelectTrigger>
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="USD">USD</SelectItem>
+                      <SelectItem value="EUR">EUR</SelectItem>
+                      <SelectItem value="GBP">GBP</SelectItem>
+                      <SelectItem value="AED">AED</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
 
-          <div className="space-y-4 py-4">
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Expense Date</Label>
-                <Input
-                  type="date"
-                  value={formData.expenseDate}
-                  onChange={(e) => setFormData(prev => ({ ...prev, expenseDate: e.target.value }))}
+                <Label>Description</Label>
+                <Textarea
+                  value={formData.description}
+                  onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
+                  placeholder="Enter expense description..."
+                  rows={3}
                 />
               </div>
-              <div className="space-y-2">
-                <Label>Category</Label>
-                <Select
-                  value={formData.category}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, category: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Select category" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {expenseCategories.map(cat => (
-                      <SelectItem key={cat} value={cat}>{cat}</SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
 
-            <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <Label>Amount</Label>
+                <Label>Receipt</Label>
                 <Input
-                  type="number"
-                  step="0.01"
-                  value={formData.amount}
-                  onChange={(e) => setFormData(prev => ({ ...prev, amount: e.target.value }))}
-                  placeholder="0.00"
+                  type="file"
+                  accept="image/*,application/pdf"
+                  onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
                 />
-              </div>
-              <div className="space-y-2">
-                <Label>Currency</Label>
-                <Select
-                  value={formData.currency}
-                  onValueChange={(value) => setFormData(prev => ({ ...prev, currency: value }))}
-                >
-                  <SelectTrigger>
-                    <SelectValue />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="USD">USD</SelectItem>
-                    <SelectItem value="EUR">EUR</SelectItem>
-                    <SelectItem value="GBP">GBP</SelectItem>
-                    <SelectItem value="AED">AED</SelectItem>
-                  </SelectContent>
-                </Select>
+                <p className="text-xs text-gray-500">Upload receipt (images or PDF)</p>
               </div>
             </div>
 
-            <div className="space-y-2">
-              <Label>Description</Label>
-              <Textarea
-                value={formData.description}
-                onChange={(e) => setFormData(prev => ({ ...prev, description: e.target.value }))}
-                placeholder="Enter expense description..."
-                rows={3}
-              />
-            </div>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button onClick={handleSave} disabled={saving}>
+                {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
 
-            <div className="space-y-2">
-              <Label>Receipt</Label>
-              <Input
-                type="file"
-                accept="image/*,application/pdf"
-                onChange={(e) => setReceiptFile(e.target.files?.[0] || null)}
-              />
-              <p className="text-xs text-gray-500">Upload receipt (images or PDF)</p>
-            </div>
-          </div>
-
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button onClick={handleSave} disabled={saving}>
-              {saving ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Saving...</> : 'Save'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-
-      {/* Delete Dialog */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Delete Expense</DialogTitle>
-            <DialogDescription>
-              Are you sure you want to delete this expense? This action cannot be undone.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancel
-            </Button>
-            <Button variant="destructive" onClick={handleDelete} disabled={loading}>
-              {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</> : 'Delete'}
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </MainLayout>
+        {/* Delete Dialog */}
+        <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+          <DialogContent>
+            <DialogHeader>
+              <DialogTitle>Delete Expense</DialogTitle>
+              <DialogDescription>
+                Are you sure you want to delete this expense? This action cannot be undone.
+              </DialogDescription>
+            </DialogHeader>
+            <DialogFooter>
+              <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
+                Cancel
+              </Button>
+              <Button variant="destructive" onClick={handleDelete} disabled={loading}>
+                {loading ? <><Loader2 className="w-4 h-4 mr-2 animate-spin" /> Deleting...</> : 'Delete'}
+              </Button>
+            </DialogFooter>
+          </DialogContent>
+        </Dialog>
+      </MainLayout>
+    </RouteGuard>
   )
 }
 

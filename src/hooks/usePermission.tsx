@@ -47,6 +47,12 @@ export const PERMISSIONS = {
   INVOICE_EDIT: 'edit_invoice',
   INVOICE_DELETE: 'delete_invoice',
 
+  // Expense permissions
+  EXPENSE_VIEW: 'view_expense',
+  EXPENSE_CREATE: 'create_expense',
+  EXPENSE_EDIT: 'edit_expense',
+  EXPENSE_DELETE: 'delete_expense',
+
   // Candidate permissions
   CANDIDATE_VIEW: 'view_candidate',
   CANDIDATE_CREATE: 'create_candidate',
@@ -70,6 +76,11 @@ export const PERMISSIONS = {
   // Reports permissions
   REPORTS_VIEW: 'view_reports',
   REPORTS_EXPORT: 'export_reports',
+
+  // Legacy/HR permissions
+  VIEW_ALL_EMPLOYEES: 'view_all_employees',
+  VIEW_ALL_SALARIES: 'view_all_salaries',
+  MANAGE_PAYROLL: 'manage_payroll',
 }
 
 // Role IDs from database
