@@ -1,69 +1,77 @@
 #!/bin/bash
 # ============================================================
 # HRMS-Next Deployment Script
-# Usage: ./deploy.sh [--skip-build]
+# Usage: ./deploy.sh
 # Run this after pushing to main to deploy to the server.
 # ============================================================
 
-set -e
-
-SERVER="hruser@hrerpfe1.uaenorth.cloudapp.azure.com"
+SERVER_USER="hruser"
+SERVER_HOST="hrerpfe1.uaenorth.cloudapp.azure.com"
+SERVER_PASSWORD="B@#77NZf7Y131QOiE"
 APP_DIR="/var/www/hrms-next"
 PM2_NAME="hrms-next"
 PORT=3000
 
-echo "🚀 HRMS-Next — Starting deployment..."
+echo "🚀 HRMS-Next — Starting deployment to $SERVER_HOST..."
 
-ssh "$SERVER" bash << 'REMOTE_SCRIPT'
-  set -e
+expect << EXPECT_SCRIPT
+set timeout 600
+spawn ssh -o StrictHostKeyChecking=no ${SERVER_USER}@${SERVER_HOST}
+expect "password:"
+send "${SERVER_PASSWORD}\r"
+expect "$ "
 
-  # Load NVM
-  export NVM_DIR="/home/hruser/.nvm"
-  . "/home/hruser/.nvm/nvm.sh"
+send "export NVM_DIR=\"/home/hruser/.nvm\" && . \"/home/hruser/.nvm/nvm.sh\"\r"
+expect "$ "
 
-  APP_DIR="/var/www/hrms-next"
-  PM2_NAME="hrms-next"
-  PORT=3000
+send "cd ${APP_DIR}\r"
+expect "$ "
 
-  echo "📥 Pulling latest code from main..."
-  cd "$APP_DIR"
-  git pull origin main
+send "echo '📥 Pulling latest code...'\r"
+expect "$ "
+send "git pull origin main 2>&1\r"
+expect "$ "
 
-  echo "📦 Installing dependencies (if changed)..."
-  npm ci --prefer-offline 2>/dev/null || npm install
+send "echo '🔨 Building Next.js app...'\r"
+expect "$ "
+send "npm run build 2>&1\r"
+expect {
+    -timeout 600
+    "$ " {}
+    timeout { puts "❌ Build timed out"; exit 1 }
+}
 
-  echo "🔨 Building Next.js app..."
-  npm run build
+send "echo '📁 Copying static assets...'\r"
+expect "$ "
+send "cp -r public .next/standalone/ 2>/dev/null; cp -r .next/static .next/standalone/.next/ 2>/dev/null\r"
+expect "$ "
 
-  echo "📁 Copying static assets for standalone..."
-  cp -r public .next/standalone/ 2>/dev/null || true
-  cp -r .next/static .next/standalone/.next/ 2>/dev/null || true
+send "echo '♻️  Restarting PM2...'\r"
+expect "$ "
+send "PORT=${PORT} pm2 restart ${PM2_NAME} --update-env 2>&1\r"
+expect "$ "
 
-  echo "♻️  Restarting PM2 process..."
-  if pm2 list | grep -q "$PM2_NAME"; then
-    PORT=$PORT pm2 restart "$PM2_NAME" --update-env
-  else
-    PORT=$PORT pm2 start .next/standalone/server.js --name "$PM2_NAME"
-  fi
+send "pm2 save\r"
+expect "$ "
 
-  pm2 save
+send "echo '🏥 Running health check...'\r"
+expect "$ "
+send "sleep 4 && curl -s -o /dev/null -w 'Health: %{http_code}' http://localhost:${PORT} && echo ''\r"
+expect "$ "
 
-  echo "🏥 Health check..."
-  sleep 4
-  STATUS=$(curl -s -o /dev/null -w "%{http_code}" http://localhost:$PORT)
-  
-  if [ "$STATUS" = "200" ] || [ "$STATUS" = "307" ] || [ "$STATUS" = "302" ]; then
-    echo "✅ Health check passed (HTTP $STATUS)"
+send "pm2 list\r"
+expect "$ "
+
+send "exit\r"
+expect eof
+EXPECT_SCRIPT
+
+EXIT_CODE=$?
+if [ $EXIT_CODE -eq 0 ]; then
     echo ""
-    echo "🎉 Deployment complete! App running on port $PORT"
-  else
-    echo "❌ Health check failed (HTTP $STATUS)"
-    pm2 logs "$PM2_NAME" --lines 20
+    echo "✅ Deployment complete!"
+else
+    echo ""
+    echo "❌ Deployment failed with exit code $EXIT_CODE"
     exit 1
-  fi
-
-  pm2 list
-REMOTE_SCRIPT
-
-echo ""
-echo "✅ Deployment finished successfully!"
+fi

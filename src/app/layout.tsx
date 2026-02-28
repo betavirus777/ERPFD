@@ -13,7 +13,11 @@ export const metadata: Metadata = {
   title: "FDCS HRMS - Human Resource Management System",
   description: "Modern HRMS solution for efficient workforce management",
   icons: {
-    icon: "/favicon.ico",
+    icon: [
+      { url: '/logo2.png', type: 'image/png' },
+    ],
+    shortcut: '/logo2.png',
+    apple: '/logo2.png',
   },
 };
 
