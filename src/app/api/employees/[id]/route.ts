@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
+import { PERMISSIONS, hasPermission } from '@/lib/permissions';
+import { getUserFromRequest } from '@/lib/auth';
 
 // Get employee by ID with all related data
 export async function GET(
@@ -8,6 +10,9 @@ export async function GET(
   { params }: { params: Promise<{ id: string }> }
 ) {
   try {
+    const user = await getUserFromRequest(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
     const { id } = await params;
     const employeeId = parseInt(id);
 
@@ -78,11 +83,14 @@ export async function GET(
     ]);
 
     // Map allowance types for salary details
+    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
     const allowanceTypeMap = new Map(allowanceTypes.map((at: any) => [at.id, at.allowance_type]));
-    const salaryDetails = salaryDetailsRaw.map((s: any) => ({
+    const salaryDetails = canManageOthers
+      ? salaryDetailsRaw.map((s: any) => ({
       ...s,
       allowanceTypeName: allowanceTypeMap.get(s.allowance_type_id) || null,
-    }));
+    }))
+      : salaryDetailsRaw; // Assuming salaryDetailsRaw is used if not allowed to manage others
 
     return NextResponse.json({
       success: true,

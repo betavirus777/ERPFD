@@ -64,10 +64,10 @@ const masterTypes: MasterType[] = [
 
 export default function MasterSettingsPage() {
   const router = useRouter()
-  const { canManageMasters, isAdmin } = usePermission()
+  const { canManageMasters, can, PERMISSIONS } = usePermission()
 
   useEffect(() => {
-    if (!isAdmin() && !canManageMasters()) {
+    if (!can(PERMISSIONS.MASTER_VIEW) && !canManageMasters()) {
       router.push('/dashboard')
     }
   }, [])

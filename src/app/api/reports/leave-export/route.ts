@@ -1,7 +1,7 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 import { apiResponse, apiError, APIError } from '@/lib/api-response';
 import { HttpStatus } from '@/lib/constants';
 
@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
         const user = await getUserFromRequest(request);
         if (!user) throw APIError.unauthorized();
 
-        const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.REPORTS_EXPORT);
+        const hasAccess = await hasPermission(user, PERMISSIONS.REPORTS_EXPORT);
         if (!hasAccess) throw APIError.forbidden('You do not have permission to export reports');
 
         const { searchParams } = new URL(request.url);

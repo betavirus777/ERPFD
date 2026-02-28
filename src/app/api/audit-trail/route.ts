@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
-import { isAdmin } from '@/lib/permissions';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 import { apiError, APIError } from '@/lib/api-response';
 
 // GET audit trail logs
@@ -10,7 +10,8 @@ export async function GET(request: NextRequest) {
     const user = await getUserFromRequest(request);
     if (!user) throw APIError.unauthorized();
 
-    if (!isAdmin(user)) {
+    const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_VIEW);
+    if (!hasAccess) {
       throw APIError.forbidden('Only admins can view audit logs');
     }
 

@@ -28,7 +28,7 @@ interface RouteGuardProps {
  *   </RouteGuard>
  */
 export function RouteGuard({ permission, anyOf, allOf, adminOnly, children }: RouteGuardProps) {
-    const { can, canAny, canAll, isAdmin, user } = usePermission()
+    const { can, canAny, canAll, user, PERMISSIONS } = usePermission()
     const router = useRouter()
 
     // Wait until user is hydrated from localStorage
@@ -36,7 +36,7 @@ export function RouteGuard({ permission, anyOf, allOf, adminOnly, children }: Ro
 
     let hasAccess = true
 
-    if (adminOnly) hasAccess = isAdmin()
+    if (adminOnly) hasAccess = can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)
     else if (permission) hasAccess = can(permission)
     else if (anyOf) hasAccess = canAny(anyOf)
     else if (allOf) hasAccess = canAll(allOf)

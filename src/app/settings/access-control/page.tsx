@@ -53,7 +53,7 @@ interface Role {
 
 export default function AccessControlPage() {
   const router = useRouter()
-  const { isAdmin, isSuperAdmin } = usePermission()
+  const { can, PERMISSIONS } = usePermission()
   const [loading, setLoading] = useState(true)
   const [roles, setRoles] = useState<Role[]>([])
   const [modules, setModules] = useState<Module[]>([])
@@ -77,7 +77,7 @@ export default function AccessControlPage() {
   const [permissions, setPermissions] = useState<Record<number, boolean>>({})
 
   useEffect(() => {
-    if (!isAdmin()) {
+    if (!can(PERMISSIONS.MASTER_EDIT)) {
       router.push('/dashboard')
       return
     }
@@ -256,7 +256,7 @@ export default function AccessControlPage() {
     setPermissions(newPerms)
   }
 
-  if (!isAdmin()) {
+  if (!can(PERMISSIONS.MASTER_EDIT)) {
     return null
   }
 
@@ -322,7 +322,7 @@ export default function AccessControlPage() {
                           <Edit2 className="w-4 h-4 mr-2" />
                           Edit
                         </Button>
-                        {isSuperAdmin() && (
+                        {can(PERMISSIONS.MASTER_DELETE) && (
                           <Button
                             variant="destructive"
                             size="sm"

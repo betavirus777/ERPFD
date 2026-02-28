@@ -9,6 +9,7 @@ export const PERMISSIONS = {
   EMPLOYEE_CREATE: 'create_employee',
   EMPLOYEE_EDIT: 'edit_employee',
   EMPLOYEE_DELETE: 'delete_employee',
+  EMPLOYEE_EDIT_OTHERS: 'edit_all_employees',
 
   // Leave permissions
   LEAVE_VIEW: 'view_leave',
@@ -108,67 +109,37 @@ export const ROLE_NAMES = {
 }
 
 // Admin roles that have elevated privileges
-export const ADMIN_ROLES = [ROLES.SUPER_ADMIN, ROLES.HR]
+// export const ADMIN_ROLES = [ROLES.SUPER_ADMIN, ROLES.HR] // Removed as per instruction
 
 export function usePermission() {
   const user = useAuthStore(state => state.user)
-  const hasPermission = useAuthStore(state => state.hasPermission)
-
-  const isAdmin = () => {
-    return ADMIN_ROLES.includes(user?.roleId || 0)
-  }
-
-  const isSuperAdmin = () => {
-    return user?.roleId === ROLES.SUPER_ADMIN
-  }
-
-  const isHR = () => {
-    return user?.roleId === ROLES.HR || user?.roleId === ROLES.SUPER_ADMIN
-  }
-
-  const isEmployee = () => {
-    return user?.roleId === ROLES.EMPLOYEE
-  }
-
-  const isClient = () => {
-    return user?.roleId === ROLES.CLIENT
-  }
-
-  const isVendor = () => {
-    return user?.roleId === ROLES.VENDOR
-  }
+  const hasAuthPermission = useAuthStore(state => state.hasPermission)
 
   const can = (permission: string) => {
-    // Super admin has all permissions
-    if (isSuperAdmin()) return true
-
-    // Check if user has the specific permission
-    return hasPermission(permission)
+    return hasAuthPermission(permission)
   }
 
   const canAny = (permissions: string[]) => {
-    if (isSuperAdmin()) return true
-    return permissions.some(p => hasPermission(p))
+    return permissions.some(p => can(p))
   }
 
   const canAll = (permissions: string[]) => {
-    if (isSuperAdmin()) return true
-    return permissions.every(p => hasPermission(p))
+    return permissions.every(p => can(p))
   }
 
   // Check if user can approve leaves
   const canApproveLeave = () => {
-    return isAdmin() || can(PERMISSIONS.LEAVE_APPROVE)
+    return can(PERMISSIONS.LEAVE_APPROVE) // Modified as per instruction
   }
 
   // Check if user can manage employees
   const canManageEmployees = () => {
-    return isAdmin() || canAny([PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_EDIT, PERMISSIONS.EMPLOYEE_DELETE])
+    return canAny([PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_EDIT, PERMISSIONS.EMPLOYEE_DELETE, PERMISSIONS.EMPLOYEE_EDIT_OTHERS]) // Modified as per instruction
   }
 
   // Check if user can manage master data
   const canManageMasters = () => {
-    return isAdmin() || canAny([PERMISSIONS.MASTER_CREATE, PERMISSIONS.MASTER_EDIT, PERMISSIONS.MASTER_DELETE])
+    return canAny([PERMISSIONS.MASTER_CREATE, PERMISSIONS.MASTER_EDIT, PERMISSIONS.MASTER_DELETE]) // Modified as per instruction
   }
 
   // Get role display name
@@ -178,12 +149,6 @@ export function usePermission() {
 
   return {
     user,
-    isAdmin,
-    isSuperAdmin,
-    isHR,
-    isEmployee,
-    isClient,
-    isVendor,
     can,
     canAny,
     canAll,
@@ -229,9 +194,10 @@ export function PermissionGate({
 
 // Admin-only gate
 export function AdminGate({ fallback = null, children }: { fallback?: React.ReactNode, children: React.ReactNode }) {
-  const { isAdmin } = usePermission()
+  const { can } = usePermission()
 
-  if (!isAdmin()) {
+  // Use a sensible high-level permission as an admin gate substitute
+  if (!can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)) {
     return fallback
   }
 

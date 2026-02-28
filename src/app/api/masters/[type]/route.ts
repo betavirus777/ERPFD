@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { withAuth } from '@/lib/auth'
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 const BACKEND_URL = process.env.NEXT_PUBLIC_BACKEND_URL || 'http://localhost:8000'
 
@@ -11,7 +11,7 @@ export async function GET(
 ) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_VIEW)
+      const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_VIEW)
 
       if (!hasAccess) {
         return NextResponse.json(
@@ -60,7 +60,7 @@ export async function POST(
 ) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_CREATE)
+      const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_CREATE)
 
       if (!hasAccess) {
         return NextResponse.json(

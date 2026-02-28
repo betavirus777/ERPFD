@@ -67,7 +67,7 @@ export async function POST(request: NextRequest) {
     // Get organisation
     const organisation = await prisma.organisation.findFirst();
     if (!organisation) {
-      return apiError(error);
+      return apiError(new Error('Organization not found'));
     }
 
     // Get base currency

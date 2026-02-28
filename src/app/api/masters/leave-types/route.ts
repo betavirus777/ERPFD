@@ -2,13 +2,13 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { withAuth } from '@/lib/auth';
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 
 // GET - List leave types
 export async function GET(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_VIEW)
+      const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_VIEW)
 
       if (!hasAccess) {
         return NextResponse.json(
@@ -48,7 +48,7 @@ export async function GET(request: NextRequest) {
 export async function POST(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_CREATE)
+      const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_CREATE)
 
       if (!hasAccess) {
         return NextResponse.json(

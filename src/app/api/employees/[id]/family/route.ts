@@ -3,6 +3,16 @@ import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 
+// Helper for roles
+const ADMIN_ROLES = [1, 2]; // SUPER_ADMIN=1, HR=2
+function isAdmin(roleId?: number) { return ADMIN_ROLES.includes(roleId || 0); }
+
+async function getSelfEmployeeId(employeeUid?: string): Promise<number | null> {
+  if (!employeeUid) return null;
+  const emp = await prisma.employeeOnboarding.findFirst({ where: { uid: employeeUid, deleted_at: null }, select: { id: true } });
+  return emp?.id ?? null;
+}
+
 // Relationship mapping for family info (stored as integer)
 const RELATIONSHIP_MAP: Record<number, string> = {
   1: 'Father',
@@ -47,18 +57,21 @@ export async function GET(
       return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
     }
 
-    // Users can only view their own family info unless they're admin/HR
-    if (id !== user.employeeUid && !user.roleId) {
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - You can only view your own family information' },
-        { status: 403 }
-      );
-    }
-
     const employeeId = parseInt(id);
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    // Only self or admin
+    if (!isAdmin(user.roleId)) {
+      const selfId = await getSelfEmployeeId(user.employeeUid);
+      if (selfId !== employeeId) {
+        return NextResponse.json(
+          { success: false, error: 'Forbidden - You can only view your own family information' },
+          { status: 403 }
+        );
+      }
     }
 
     const family = await prisma.employeeFamilyInfo.findMany({
@@ -93,8 +106,19 @@ export async function POST(
     const employeeId = parseInt(id);
     const body = await request.json();
 
+    const user = await getUserFromRequest(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
     if (isNaN(employeeId)) {
       return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    // Only self or admin
+    if (!isAdmin(user.roleId)) {
+      const selfId = await getSelfEmployeeId(user.employeeUid);
+      if (selfId !== employeeId) {
+        return NextResponse.json({ success: false, error: 'Forbidden - You can only update your own family information' }, { status: 403 });
+      }
     }
 
     // Convert relationship string to number
@@ -156,9 +180,26 @@ export async function DELETE(
   try {
     const url = new URL(request.url);
     const familyId = url.searchParams.get('familyId');
+    const { id } = await params;
+    const employeeId = parseInt(id);
+
+    const user = await getUserFromRequest(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
 
     if (!familyId) {
       return NextResponse.json({ success: false, error: 'Family ID required' }, { status: 400 });
+    }
+
+    if (isNaN(employeeId)) {
+      return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    // Only self or admin
+    if (!isAdmin(user.roleId)) {
+      const selfId = await getSelfEmployeeId(user.employeeUid);
+      if (selfId !== employeeId) {
+        return NextResponse.json({ success: false, error: 'Forbidden - You can only delete your own family information' }, { status: 403 });
+      }
     }
 
     await prisma.employeeFamilyInfo.update({

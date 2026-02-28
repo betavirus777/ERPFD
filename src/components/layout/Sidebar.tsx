@@ -121,7 +121,7 @@ function buildMenu(roleId: number): MenuGroup[] {
     })
   }
 
-  groups.push({ id: 'workforce', name: 'Workforce Management', items: workforceItems })
+  groups.push({ id: 'workforce', name: 'Workforce', items: workforceItems })
 
   // ── BUSINESS OPERATIONS ──────────────────────────────────
   // Only visible to: Admin, Sales, Operations

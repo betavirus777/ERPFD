@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { withAuth } from '@/lib/auth'
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 // GET role permissions
 export async function GET(
@@ -13,7 +13,7 @@ export async function GET(
       const { id } = await context.params
       const roleId = parseInt(id)
 
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_VIEW)
+      const hasAccess = await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_VIEW)
 
       if (!hasAccess) {
         return NextResponse.json(
@@ -95,7 +95,7 @@ export async function PUT(
     try {
       const { id } = await context.params
       const roleId = parseInt(id)
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_EDIT)
+      const hasAccess = await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_EDIT)
 
       if (!hasAccess) {
         return NextResponse.json(
@@ -174,7 +174,7 @@ export async function DELETE(
     try {
       const { id } = await context.params
       const roleId = parseInt(id)
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_EDIT)
+      const hasAccess = await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_EDIT)
 
       if (!hasAccess) {
         return NextResponse.json(

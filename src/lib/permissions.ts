@@ -14,8 +14,6 @@ export const ROLES = {
     VENDOR: 8,
 } as const;
 
-export const ADMIN_ROLES: number[] = [ROLES.SUPER_ADMIN, ROLES.HR];
-
 // Permission constants - Keep in sync with frontend
 export const PERMISSIONS = {
     // Employee permissions
@@ -23,10 +21,13 @@ export const PERMISSIONS = {
     EMPLOYEE_CREATE: 'create_employee',
     EMPLOYEE_EDIT: 'edit_employee',
     EMPLOYEE_DELETE: 'delete_employee',
+    EMPLOYEE_VIEW_OTHERS: 'view_all_employees',
+    EMPLOYEE_EDIT_OTHERS: 'edit_all_employees',
 
     // Leave permissions
     LEAVE_VIEW: 'view_leave',
     LEAVE_APPLY: 'apply_leave',
+    LEAVE_APPLY_OTHERS: 'apply_leave_others',
     LEAVE_APPROVE: 'approve_leave',
     LEAVE_REJECT: 'reject_leave',
     LEAVE_CANCEL: 'cancel_leave',
@@ -104,8 +105,6 @@ export async function hasPermission(
     user: JWTPayload,
     permissionName: string
 ): Promise<boolean> {
-    // Super admins have all permissions
-    if (user.roleId === 1) return true;
 
     try {
         // Query database for user's permissions through their role
@@ -138,7 +137,6 @@ export async function hasAnyPermission(
     user: JWTPayload,
     permissions: string[]
 ): Promise<boolean> {
-    if (user.roleId === 1) return true;
 
     for (const perm of permissions) {
         if (await hasPermission(user, perm)) {
@@ -146,23 +144,6 @@ export async function hasAnyPermission(
         }
     }
     return false;
-}
-
-/**
- * Check if user can view other employees' data
- * HR and admins can view all, regular employees can only view their own
- */
-export function canViewEmployeeData(
-    user: JWTPayload,
-    targetEmployeeUid: string
-): boolean {
-    // User can always view their own data
-    if (user.employeeUid === targetEmployeeUid) {
-        return true;
-    }
-
-    // Admin roles can view all employee data
-    return ADMIN_ROLES.includes(user.roleId || 0);
 }
 
 /**
@@ -177,8 +158,11 @@ export async function authorizeEmployeeAccess(
     const user = await getUserFromRequest(request);
     if (!user) return null;
 
-    // Check if user can view this employee's data
-    if (!canViewEmployeeData(user, employeeUid)) {
+    // Check if user has explicit permission to view ANY employee data
+    const canViewAll = await hasPermission(user, PERMISSIONS.EMPLOYEE_VIEW_OTHERS);
+
+    // If they can't view all, and they aren't authorized to view themselves, deny.
+    if (!canViewAll && user.employeeUid !== employeeUid) {
         return null;
     }
 
@@ -189,11 +173,4 @@ export async function authorizeEmployeeAccess(
     }
 
     return user;
-}
-
-/**
- * Check if user is an admin
- */
-export function isAdmin(user: JWTPayload): boolean {
-    return ADMIN_ROLES.includes(user.roleId || 0);
 }

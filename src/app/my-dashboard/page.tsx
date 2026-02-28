@@ -67,9 +67,16 @@ export default function UserDashboard() {
         ? Math.round((leaveStats.totalUsed / leaveStats.totalAllocated) * 100)
         : 0
 
+    // Total stats calculating
+    const totalAllocated = Number(leaveStats?.totalAllocated) || 0;
+    const totalUsed = Number(leaveStats?.totalUsed) || 0;
+    const totalBalance = Number(leaveStats?.totalBalance) || 0;
+
+    const hasAllocations = leaveStats?.allocations && leaveStats.allocations.length > 0;
+
     const tenure = employee.doj
         ? differenceInYears(new Date(), new Date(employee.doj))
-        : 0
+        : 0;
 
     return (
         <MainLayout>
@@ -109,8 +116,12 @@ export default function UserDashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-emerald-600 font-medium">Leave Balance</p>
-                                    <p className="text-3xl font-bold text-emerald-700">{leaveStats.totalBalance}</p>
-                                    <p className="text-xs text-emerald-500 mt-1">days remaining</p>
+                                    <p className="text-3xl font-bold text-emerald-700">
+                                        {hasAllocations ? totalBalance : 'N/A'}
+                                    </p>
+                                    <p className="text-xs text-emerald-500 mt-1">
+                                        {hasAllocations ? 'days remaining' : 'Not allocated yet'}
+                                    </p>
                                 </div>
                                 <div className="h-12 w-12 rounded-full bg-emerald-100 flex items-center justify-center">
                                     <CalendarDays className="h-6 w-6 text-emerald-600" />
@@ -124,8 +135,10 @@ export default function UserDashboard() {
                             <div className="flex items-center justify-between">
                                 <div>
                                     <p className="text-sm text-blue-600 font-medium">Leave Used</p>
-                                    <p className="text-3xl font-bold text-blue-700">{leaveStats.totalUsed}</p>
-                                    <p className="text-xs text-blue-500 mt-1">of {leaveStats.totalAllocated} days</p>
+                                    <p className="text-3xl font-bold text-blue-700">{totalUsed}</p>
+                                    <p className="text-xs text-blue-500 mt-1">
+                                        {hasAllocations ? `of ${totalAllocated} days` : 'days used'}
+                                    </p>
                                 </div>
                                 <div className="h-12 w-12 rounded-full bg-blue-100 flex items-center justify-center">
                                     <Plane className="h-6 w-6 text-blue-600" />
@@ -237,8 +250,8 @@ export default function UserDashboard() {
                                             <div className="flex flex-col items-end gap-1">
                                                 <Badge variant="outline">{leave.days}d</Badge>
                                                 <span className={`text-xs px-1.5 py-0.5 rounded-full ${leave.status === 'Approved'
-                                                        ? 'bg-green-100 text-green-700'
-                                                        : 'bg-amber-100 text-amber-700'
+                                                    ? 'bg-green-100 text-green-700'
+                                                    : 'bg-amber-100 text-amber-700'
                                                     }`}>{leave.status}</span>
                                             </div>
                                         </div>

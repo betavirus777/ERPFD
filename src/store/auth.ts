@@ -47,7 +47,6 @@ interface AuthState {
   logout: () => void;
   hasPermission: (permission: string) => boolean;
   getMenus: () => MenuItem[];
-  isAdmin: () => boolean;
 }
 
 export const useAuthStore = create<AuthState>()(
@@ -118,12 +117,6 @@ export const useAuthStore = create<AuthState>()(
       getMenus: () => {
         const { user } = get();
         return user?.menus?.data || [];
-      },
-
-      isAdmin: () => {
-        const { user } = get();
-        // Role IDs: 1 = Super Admin, 2 = HR
-        return user?.roleId === 1 || user?.roleId === 2;
       },
     }),
     {

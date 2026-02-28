@@ -37,6 +37,14 @@ export function Header({ onMenuClick }: HeaderProps) {
   const { startTour } = useWalkthroughStore()
   const [theme, setTheme] = useState<'light' | 'dark'>('light')
 
+  // Filter tour steps to only include steps whose target element exists in the DOM
+  const handleStartTour = () => {
+    const visibleSteps = WALKTHROUGH_STEPS.filter(step => {
+      return !!document.querySelector(step.targetSelector)
+    })
+    startTour(visibleSteps.length)
+  }
+
   const handleLogout = async () => {
     await logout()
     router.push('/login')
@@ -87,7 +95,7 @@ export function Header({ onMenuClick }: HeaderProps) {
       <div className="flex items-center gap-1 sm:gap-2">
         {/* Help / Tour Button */}
         <button
-          onClick={() => startTour(WALKTHROUGH_STEPS.length)}
+          onClick={handleStartTour}
           className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-600 dark:text-gray-400 transition-all hover:scale-105"
           title="Take a tour"
           aria-label="Platform tour"

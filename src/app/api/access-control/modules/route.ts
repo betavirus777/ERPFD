@@ -1,13 +1,13 @@
 import { NextRequest, NextResponse } from 'next/server'
 import prisma from '@/lib/db'
 import { withAuth } from '@/lib/auth'
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions'
+import { hasPermission, PERMISSIONS } from '@/lib/permissions'
 
 // GET all modules with permissions
 export async function GET(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_VIEW)
+      const hasAccess = await hasPermission(user, PERMISSIONS.ACCESS_CONTROL_VIEW)
 
       if (!hasAccess) {
         return NextResponse.json(

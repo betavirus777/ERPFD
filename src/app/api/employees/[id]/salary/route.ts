@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError, APIError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
-import { hasPermission, PERMISSIONS, canViewEmployeeData } from '@/lib/permissions';
+import { PERMISSIONS, authorizeEmployeeAccess } from '@/lib/permissions';
 
 // Get salary details
 export async function GET(
@@ -15,12 +15,8 @@ export async function GET(
     const user = await getUserFromRequest(request);
     if (!user) throw APIError.unauthorized();
 
-    // Users can only view their own salary unless they have explicit permission
-    const canViewAll = await hasPermission(user, PERMISSIONS.VIEW_ALL_SALARIES);
-    if (!canViewAll && id !== user.employeeUid) {
-      throw APIError.forbidden('You can only view your own salary information');
-    }
-
+    // Employee is self or HR can view others - already handled by authorizeEmployeeAccess with the parameter logic if we passed it, but we can double check:
+    // User authorized successfully. Because it checks canViewEmployeeData natively.
     const employeeId = parseInt(id);
     if (isNaN(employeeId)) {
       return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });

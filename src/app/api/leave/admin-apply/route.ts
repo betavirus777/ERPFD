@@ -10,8 +10,8 @@ export async function POST(request: NextRequest) {
     const user = await getUserFromRequest(request);
     if (!user) throw APIError.unauthorized();
 
-    if (!(await hasPermission(user, PERMISSIONS.LEAVE_APPROVE))) {
-      throw APIError.forbidden('You do not have permission to manage leaves');
+    if (user.roleId !== 1) { // 1 = SUPER_ADMIN
+      throw APIError.forbidden('Only Super Admin can apply for leaves on behalf of employees');
     }
 
     const body = await request.json();

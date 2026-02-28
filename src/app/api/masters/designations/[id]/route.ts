@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { withAuth } from '@/lib/auth';
-import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 
 // PUT update designation
 export async function PUT(
@@ -12,7 +12,7 @@ export async function PUT(
     return withAuth(request, async (user) => {
         try {
             const { id } = await context.params
-            const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_EDIT)
+            const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_EDIT)
 
             if (!hasAccess) {
                 return NextResponse.json(
@@ -63,7 +63,7 @@ export async function DELETE(
     return withAuth(request, async (user) => {
         try {
             const { id } = await context.params
-            const hasAccess = isAdmin(user) || await hasPermission(user, PERMISSIONS.MASTER_DELETE)
+            const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_DELETE)
 
             if (!hasAccess) {
                 return NextResponse.json(

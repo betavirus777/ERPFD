@@ -98,7 +98,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!emailResult.success) {
-      return apiError(error);
+      return apiError(emailResult.error);
     }
 
     return NextResponse.json({ 
