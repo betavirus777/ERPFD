@@ -203,33 +203,44 @@ export default function UserDashboard() {
                                 ) : (
                                     <div className="text-center py-8 text-gray-500">
                                         <CalendarDays className="w-12 h-12 mx-auto mb-2 text-gray-300" />
-                                        <p>No leave allocations found for this year</p>
+                                        <p className="font-medium">No leave allocations for {new Date().getFullYear()}</p>
+                                        <p className="text-xs text-gray-400 mt-1">Contact HR to set up your leave entitlements</p>
+                                        <Link href="/leave/my-leave">
+                                            <Button variant="outline" size="sm" className="mt-3">View My Leave History</Button>
+                                        </Link>
                                     </div>
                                 )}
                             </div>
                         </CardContent>
                     </Card>
 
-                    {/* Upcoming Leaves */}
+                    {/* Upcoming / Recent Leaves */}
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-base">Upcoming Leaves</CardTitle>
+                            <CardDescription>Approved & pending leave requests</CardDescription>
                         </CardHeader>
                         <CardContent>
                             {upcomingLeaves.length > 0 ? (
                                 <div className="space-y-3">
                                     {upcomingLeaves.map((leave: any) => (
                                         <div key={leave.id} className="flex items-center gap-3 p-3 bg-slate-50 rounded-lg">
-                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm">
+                                            <div className="h-10 w-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-600 font-bold text-sm flex-shrink-0">
                                                 {format(new Date(leave.fromDate), 'd')}
                                             </div>
-                                            <div className="flex-1">
+                                            <div className="flex-1 min-w-0">
                                                 <p className="text-sm font-medium">{leave.leaveType}</p>
                                                 <p className="text-xs text-gray-500">
                                                     {format(new Date(leave.fromDate), 'MMM d')} - {format(new Date(leave.toDate), 'MMM d')}
                                                 </p>
                                             </div>
-                                            <Badge variant="outline">{leave.days}d</Badge>
+                                            <div className="flex flex-col items-end gap-1">
+                                                <Badge variant="outline">{leave.days}d</Badge>
+                                                <span className={`text-xs px-1.5 py-0.5 rounded-full ${leave.status === 'Approved'
+                                                        ? 'bg-green-100 text-green-700'
+                                                        : 'bg-amber-100 text-amber-700'
+                                                    }`}>{leave.status}</span>
+                                            </div>
                                         </div>
                                     ))}
                                 </div>
@@ -237,6 +248,9 @@ export default function UserDashboard() {
                                 <div className="text-center py-8 text-gray-400">
                                     <Plane className="w-8 h-8 mx-auto mb-2" />
                                     <p className="text-sm">No upcoming leaves</p>
+                                    <Link href="/leave/my-leave">
+                                        <Button variant="link" size="sm" className="mt-1">Apply for leave</Button>
+                                    </Link>
                                 </div>
                             )}
                         </CardContent>

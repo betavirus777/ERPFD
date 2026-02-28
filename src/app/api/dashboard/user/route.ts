@@ -34,7 +34,7 @@ export async function GET(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Employee not found' }, { status: 404 });
         }
 
-        // Get leave allocations for this year
+        // Get leave allocations for this year (raw SQL — leave_allocation not in Prisma schema)
         const allocations = await prisma.$queryRaw<any[]>`
       SELECT 
         la.leave_type_id,
@@ -79,11 +79,11 @@ export async function GET(request: NextRequest) {
             }
         }).catch(() => 0);
 
-        // Upcoming leaves
+        // Upcoming leaves (approved and pending future leaves)
         const upcomingLeaves = await prisma.applyLeave.findMany({
             where: {
                 employee_onboarding_id: employeeUid,
-                status_master_id: 2, // Approved
+                status_master_id: { in: [1, 2] }, // Pending or Approved
                 from_date: { gte: today },
                 deleted_at: null
             },
@@ -91,7 +91,20 @@ export async function GET(request: NextRequest) {
             take: 5
         }).catch(() => []);
 
-        // Get leave types
+        // Recent past leaves (last 3 months) - fallback to show some data
+        const recentLeaves = await prisma.applyLeave.findMany({
+            where: {
+                employee_onboarding_id: employeeUid,
+                deleted_at: null,
+                from_date: {
+                    gte: new Date(new Date().setMonth(today.getMonth() - 3))
+                }
+            },
+            orderBy: { from_date: 'desc' },
+            take: 5
+        }).catch(() => []);
+
+        // Get leave types for mapping
         const leaveTypes = await prisma.leaveMaster.findMany({ where: { status: true } });
         const leaveTypeMap = new Map(leaveTypes.map(t => [t.id, t.leave_type]));
 
@@ -112,7 +125,7 @@ export async function GET(request: NextRequest) {
             },
             orderBy: { end_date: 'asc' },
             take: 10
-        });
+        }).catch(() => []);
 
         // My document requests
         const myDocRequests = await prisma.documentRequest.findMany({
@@ -124,9 +137,11 @@ export async function GET(request: NextRequest) {
         }).catch(() => []);
 
         // Calculate total leave balance
-        const totalAllocated = allocations.reduce((sum: number, a: any) => sum + (a.allocated_days || 0), 0);
+        const totalAllocated = allocations.reduce((sum: number, a: any) => sum + (Number(a.allocated_days) || 0), 0);
         const totalUsed = allocations.reduce((sum: number, a: any) => sum + (Number(a.used_days) || 0), 0);
         const totalBalance = totalAllocated - totalUsed;
+
+        const allLeaves = upcomingLeaves.length > 0 ? upcomingLeaves : recentLeaves;
 
         return NextResponse.json({
             success: true,
@@ -147,17 +162,18 @@ export async function GET(request: NextRequest) {
                     approvedLeavesCount,
                     allocations: allocations.map((a: any) => ({
                         leaveType: a.leave_type,
-                        allocated: a.allocated_days,
+                        allocated: Number(a.allocated_days),
                         used: Number(a.used_days),
-                        balance: a.allocated_days - Number(a.used_days)
+                        balance: Number(a.allocated_days) - Number(a.used_days)
                     }))
                 },
-                upcomingLeaves: upcomingLeaves.map((l: any) => ({
+                upcomingLeaves: allLeaves.map((l: any) => ({
                     id: l.id,
                     fromDate: l.from_date,
                     toDate: l.to_date,
                     days: l.number_of_days,
-                    leaveType: leaveTypeMap.get(l.type) || 'Leave'
+                    leaveType: leaveTypeMap.get(l.type) || 'Leave',
+                    status: l.status_master_id === 1 ? 'Pending' : 'Approved'
                 })),
                 expiringDocuments: myExpiringDocs.map(doc => ({
                     id: doc.id,
