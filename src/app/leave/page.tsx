@@ -181,8 +181,8 @@ function LeavePageContent() {
 
   // Update admin ref when permission changes
   useEffect(() => {
-    userIsAdmin.current = can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)
-  }, [can, PERMISSIONS.EMPLOYEE_EDIT_OTHERS])
+    userIsAdmin.current = can(PERMISSIONS.VIEW_ALL_EMPLOYEES)
+  }, [can, PERMISSIONS.VIEW_ALL_EMPLOYEES])
 
   const getStatusFilter = useCallback((tab: string) => {
     switch (tab) {
@@ -226,7 +226,7 @@ function LeavePageContent() {
       }
     } catch (error) {
       console.error('Failed to fetch leave applications:', error)
-      if (!can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)) {
+      if (!can(PERMISSIONS.VIEW_ALL_EMPLOYEES)) {
         setLoading(false)
       }
     } finally {
@@ -460,11 +460,11 @@ function LeavePageContent() {
               Leave Management
             </h1>
             <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
-              {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) ? 'Manage and approve leave applications' : 'Apply and track your leave applications'}
+              {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) ? 'Manage and approve leave applications' : 'Apply and track your leave applications'}
             </p>
           </div>
           <div className="flex gap-2">
-            {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && (
+            {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && (
               <Button
                 variant="outline"
                 onClick={() => setAdminApplyModalOpen(true)}
@@ -496,7 +496,7 @@ function LeavePageContent() {
         )}
 
         {/* Leave Balance Cards (for employees or admin view of employee) */}
-        {((!can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) || (can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && employeeFilter && employeeFilter.trim() !== '')) && leaveBalance.length > 0) && (
+        {((!can(PERMISSIONS.VIEW_ALL_EMPLOYEES) || (can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && employeeFilter && employeeFilter.trim() !== '')) && leaveBalance.length > 0) && (
           <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-3">
             {leaveBalance.map((balance) => (
               <Card key={balance.leaveType} className="bg-gradient-to-br from-white to-gray-50 dark:from-gray-800 dark:to-gray-900">
@@ -517,7 +517,7 @@ function LeavePageContent() {
         )}
 
         {/* Stats Cards (for admins) */}
-        {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && (
+        {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && (
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <Card className="cursor-pointer hover:shadow-md transition-shadow" onClick={() => setActiveTab('all')}>
               <CardContent className="p-4">
@@ -587,7 +587,7 @@ function LeavePageContent() {
               </TabsTrigger>
               <TabsTrigger value="approved">Approved</TabsTrigger>
               <TabsTrigger value="rejected">Rejected</TabsTrigger>
-              {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && (
+              {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && (
                 <TabsTrigger value="cancellation-requests">
                   Cancellation Requests
                 </TabsTrigger>
@@ -596,7 +596,7 @@ function LeavePageContent() {
 
             {/* Filters */}
             <div className="flex gap-2 flex-wrap">
-              {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && (
+              {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && (
                 <div className="w-[220px]">
                   <SearchableSelect
                     options={[
@@ -657,7 +657,7 @@ function LeavePageContent() {
                 <Table>
                   <TableHeader>
                     <TableRow className="bg-gray-50 dark:bg-gray-800/50">
-                      {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && <TableHead>Employee</TableHead>}
+                      {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && <TableHead>Employee</TableHead>}
                       <TableHead>Leave Type</TableHead>
                       <TableHead>Duration</TableHead>
                       <TableHead>Days</TableHead>
@@ -671,7 +671,7 @@ function LeavePageContent() {
                   <TableBody>
                     {leaveApplications.map((leave) => (
                       <TableRow key={leave.id} className="hover:bg-gray-50 dark:hover:bg-gray-800/50">
-                        {can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && (
+                        {can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && (
                           <TableCell>
                             <div className="flex items-center gap-3">
                               <Avatar className="h-9 w-9">
@@ -742,7 +742,7 @@ function LeavePageContent() {
                               </DropdownMenuItem>
 
                               {/* Admin approval options for pending leaves */}
-                              {(can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) || can(PERMISSIONS.LEAVE_APPROVE)) && leave.statusId === STATUS_IDS.PENDING && (
+                              {(can(PERMISSIONS.VIEW_ALL_EMPLOYEES) || can(PERMISSIONS.LEAVE_APPROVE)) && leave.statusId === STATUS_IDS.PENDING && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -763,7 +763,7 @@ function LeavePageContent() {
                               )}
 
                               {/* Admin options for cancellation requests */}
-                              {(can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) || can(PERMISSIONS.LEAVE_APPROVE)) && leave.statusId === STATUS_IDS.REQUEST_CANCELLATION && (
+                              {(can(PERMISSIONS.VIEW_ALL_EMPLOYEES) || can(PERMISSIONS.LEAVE_APPROVE)) && leave.statusId === STATUS_IDS.REQUEST_CANCELLATION && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem
@@ -777,7 +777,7 @@ function LeavePageContent() {
                               )}
 
                               {/* Employee cancellation request option */}
-                              {(!can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS) && leave.statusId === STATUS_IDS.APPROVED) && (
+                              {(!can(PERMISSIONS.VIEW_ALL_EMPLOYEES) && leave.statusId === STATUS_IDS.APPROVED) && (
                                 <>
                                   <DropdownMenuSeparator />
                                   <DropdownMenuItem

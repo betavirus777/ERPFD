@@ -22,7 +22,6 @@ export const PERMISSIONS = {
     EMPLOYEE_EDIT: 'edit_employee',
     EMPLOYEE_DELETE: 'delete_employee',
     EMPLOYEE_VIEW_OTHERS: 'view_all_employees',
-    EMPLOYEE_EDIT_OTHERS: 'edit_all_employees',
 
     // Leave permissions
     LEAVE_VIEW: 'view_leave',

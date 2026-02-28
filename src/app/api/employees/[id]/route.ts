@@ -83,7 +83,7 @@ export async function GET(
     ]);
 
     // Map allowance types for salary details
-    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
+    const canManageOthers = await hasPermission(user, PERMISSIONS.VIEW_ALL_EMPLOYEES);
     const allowanceTypeMap = new Map(allowanceTypes.map((at: any) => [at.id, at.allowance_type]));
     const salaryDetails = canManageOthers
       ? salaryDetailsRaw.map((s: any) => ({

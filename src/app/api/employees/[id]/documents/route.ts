@@ -60,7 +60,7 @@ export async function POST(request: NextRequest, { params }: { params: Promise<{
     const employeeId = parseInt(id);
     if (isNaN(employeeId)) return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
 
-    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
+    const canManageOthers = await hasPermission(user, PERMISSIONS.VIEW_ALL_EMPLOYEES);
     if (!canManageOthers) {
       const selfId = await getSelfId(user.employeeUid || '');
       if (selfId !== employeeId) return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });
@@ -104,7 +104,7 @@ export async function DELETE(request: NextRequest, { params }: { params: Promise
     const { id } = await params;
     const employeeId = parseInt(id);
 
-    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
+    const canManageOthers = await hasPermission(user, PERMISSIONS.VIEW_ALL_EMPLOYEES);
     if (!canManageOthers) {
       const selfId = await getSelfId(user.employeeUid || '');
       if (selfId !== employeeId) return NextResponse.json({ success: false, error: 'Forbidden' }, { status: 403 });

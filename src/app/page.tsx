@@ -12,7 +12,7 @@ export default function Home() {
 
   useEffect(() => {
     if (isAuthenticated) {
-      if (can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)) {
+      if (can(PERMISSIONS.VIEW_ALL_EMPLOYEES)) {
         router.push("/dashboard")
       } else {
         router.push("/my-dashboard")

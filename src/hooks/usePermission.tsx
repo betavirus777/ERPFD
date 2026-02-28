@@ -9,7 +9,6 @@ export const PERMISSIONS = {
   EMPLOYEE_CREATE: 'create_employee',
   EMPLOYEE_EDIT: 'edit_employee',
   EMPLOYEE_DELETE: 'delete_employee',
-  EMPLOYEE_EDIT_OTHERS: 'edit_all_employees',
 
   // Leave permissions
   LEAVE_VIEW: 'view_leave',
@@ -134,7 +133,7 @@ export function usePermission() {
 
   // Check if user can manage employees
   const canManageEmployees = () => {
-    return canAny([PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_EDIT, PERMISSIONS.EMPLOYEE_DELETE, PERMISSIONS.EMPLOYEE_EDIT_OTHERS]) // Modified as per instruction
+    return canAny([PERMISSIONS.EMPLOYEE_CREATE, PERMISSIONS.EMPLOYEE_EDIT, PERMISSIONS.EMPLOYEE_DELETE, PERMISSIONS.VIEW_ALL_EMPLOYEES]) // Modified as per instruction
   }
 
   // Check if user can manage master data
@@ -197,7 +196,7 @@ export function AdminGate({ fallback = null, children }: { fallback?: React.Reac
   const { can } = usePermission()
 
   // Use a sensible high-level permission as an admin gate substitute
-  if (!can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)) {
+  if (!can(PERMISSIONS.VIEW_ALL_EMPLOYEES)) {
     return fallback
   }
 

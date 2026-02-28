@@ -23,7 +23,7 @@ export async function GET(
     if (isNaN(employeeId)) return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
 
     // Only self or user with explicit permission to edit others
-    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
+    const canManageOthers = await hasPermission(user, PERMISSIONS.VIEW_ALL_EMPLOYEES);
     if (!canManageOthers) {
       const selfId = await getSelfEmployeeId(user.employeeUid || '');
       if (selfId !== employeeId) {
@@ -67,7 +67,7 @@ export async function POST(
     if (isNaN(employeeId)) return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
 
     // Only self or user with explicit permission to edit others
-    const canManageOthers = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT_OTHERS);
+    const canManageOthers = await hasPermission(user, PERMISSIONS.VIEW_ALL_EMPLOYEES);
     if (!canManageOthers) {
       const selfId = await getSelfEmployeeId(user.employeeUid || '');
       if (selfId !== employeeId) {

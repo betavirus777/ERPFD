@@ -36,7 +36,7 @@ export function RouteGuard({ permission, anyOf, allOf, adminOnly, children }: Ro
 
     let hasAccess = true
 
-    if (adminOnly) hasAccess = can(PERMISSIONS.EMPLOYEE_EDIT_OTHERS)
+    if (adminOnly) hasAccess = can(PERMISSIONS.VIEW_ALL_EMPLOYEES)
     else if (permission) hasAccess = can(permission)
     else if (anyOf) hasAccess = canAny(anyOf)
     else if (allOf) hasAccess = canAll(allOf)
