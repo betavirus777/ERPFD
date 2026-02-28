@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import {
   verifyOTP,
@@ -66,10 +67,7 @@ export async function POST(request: NextRequest) {
     // Get organisation
     const organisation = await prisma.organisation.findFirst();
     if (!organisation) {
-      return NextResponse.json(
-        { success: false, code: 500, error: 'Organisation not configured' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
 
     // Get base currency
@@ -209,9 +207,6 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ success: true, code: 200, data: responseData });
   } catch (error) {
     console.error('Login with OTP error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

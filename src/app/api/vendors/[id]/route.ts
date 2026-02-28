@@ -93,10 +93,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get vendor error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch vendor' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -184,10 +181,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Update vendor error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to update vendor' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -240,10 +234,7 @@ export async function DELETE(
     });
   } catch (error: any) {
     console.error('Delete vendor error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to delete vendor' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { ROLES } from '@/lib/permissions';
-import { APIError } from '@/lib/api-response';
+import { APIError , apiError } from '@/lib/api-response';
 
 interface RouteParams {
   params: Promise<{
@@ -52,10 +52,7 @@ export async function GET(request: NextRequest, { params }: RouteParams) {
 
   } catch (error: any) {
     console.error('Role permissions fetch error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch role permissions' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -171,9 +168,6 @@ export async function POST(request: NextRequest, { params }: RouteParams) {
   
     } catch (error: any) {
       console.error('Role permissions update error:', error);
-      return NextResponse.json(
-        { success: false, code: 500, error: error.message || 'Failed to update role permissions' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
   }

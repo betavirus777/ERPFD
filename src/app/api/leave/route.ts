@@ -151,10 +151,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Get leave applications error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch leave applications' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -239,9 +236,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Apply leave error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to submit leave application' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { ROLES } from '@/lib/permissions';
-import { APIError } from '@/lib/api-response';
+import { APIError , apiError } from '@/lib/api-response';
 
 // Get all permissions grouped by module
 export async function GET(request: NextRequest) {
@@ -54,9 +54,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Permissions fetch error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch permissions' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

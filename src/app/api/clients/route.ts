@@ -107,10 +107,7 @@ export const GET = withProfiling(async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Clients list error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch clients' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 });
 
@@ -181,9 +178,6 @@ export const POST = withProfiling(async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('Create client error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to create client' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 });

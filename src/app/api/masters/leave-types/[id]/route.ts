@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions';
@@ -51,10 +52,7 @@ export async function PUT(
             });
         } catch (error: any) {
             console.error('Leave type update error:', error);
-            return NextResponse.json(
-                { success: false, code: 500, error: error.message || 'Failed to update leave type' },
-                { status: 500 }
-            );
+            return apiError(error);
         }
     });
 }
@@ -91,10 +89,7 @@ export async function DELETE(
             });
         } catch (error: any) {
             console.error('Leave type delete error:', error);
-            return NextResponse.json(
-                { success: false, code: 500, error: error.message || 'Failed to delete leave type' },
-                { status: 500 }
-            );
+            return apiError(error);
         }
     });
 }

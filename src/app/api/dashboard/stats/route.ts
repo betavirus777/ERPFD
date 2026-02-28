@@ -214,9 +214,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Dashboard Stats Error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch dashboard stats' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

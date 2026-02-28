@@ -94,7 +94,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Get candidates error:', error);
-    return NextResponse.json({ success: false, code: 500, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -154,7 +154,7 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Create candidate error:', error);
-    return NextResponse.json({ success: false, code: 500, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

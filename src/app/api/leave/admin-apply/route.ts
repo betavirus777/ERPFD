@@ -110,9 +110,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Admin apply leave error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to apply leave' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

@@ -82,10 +82,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get client error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch client' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -153,10 +150,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Update client error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to update client' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -209,9 +203,6 @@ export async function DELETE(
     });
   } catch (error: any) {
     console.error('Delete client error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to delete client' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

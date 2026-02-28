@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 
 // GET single project
@@ -93,7 +94,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get project error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -154,7 +155,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Update project error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -179,7 +180,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Project deleted successfully' });
   } catch (error: any) {
     console.error('Delete project error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

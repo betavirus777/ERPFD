@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError, APIError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
+import { hasPermission, PERMISSIONS, canViewEmployeeData } from '@/lib/permissions';
 
 // Get salary details
 export async function GET(
@@ -10,23 +12,13 @@ export async function GET(
   try {
     const { id } = await params;
 
-    // Get authenticated user
     const user = await getUserFromRequest(request);
-    if (!user) {
-      return NextResponse.json(
-        { success: false, error: 'Unauthorized' },
-        { status: 401 }
-      );
-    }
+    if (!user) throw APIError.unauthorized();
 
-    // Users can only view their own salary unless they're admin/HR
-    // For now, we'll check if the requested ID matches the logged-in user's ID
-    if (id !== user.employeeUid && !user.roleId) {
-      // TODO: Add proper role check (roleId === ADMIN_ROLE_ID || roleId === HR_ROLE_ID)
-      return NextResponse.json(
-        { success: false, error: 'Forbidden - You can only view your own salary information' },
-        { status: 403 }
-      );
+    // Users can only view their own salary unless they have explicit permission
+    const canViewAll = await hasPermission(user, PERMISSIONS.VIEW_ALL_SALARIES);
+    if (!canViewAll && id !== user.employeeUid) {
+      throw APIError.forbidden('You can only view your own salary information');
     }
 
     const employeeId = parseInt(id);
@@ -62,7 +54,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get salary details error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -134,7 +126,7 @@ export async function POST(
     }
   } catch (error: any) {
     console.error('Save salary detail error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -159,7 +151,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Salary detail deleted successfully' });
   } catch (error: any) {
     console.error('Delete salary detail error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

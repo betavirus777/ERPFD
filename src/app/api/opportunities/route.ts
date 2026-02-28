@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 
 // Get all opportunities
@@ -96,10 +97,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Opportunities list error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch opportunities' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -161,9 +159,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('Create opportunity error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to create opportunity' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

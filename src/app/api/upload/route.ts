@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import { withAuth } from '@/lib/auth';
 import { uploadToAzure, getAzureFileUrl, isAzureConfigured } from '@/lib/storage';
 import { writeFile, mkdir } from 'fs/promises';
@@ -84,10 +85,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (error) {
       console.error('File upload error:', error);
-      return NextResponse.json(
-        { success: false, code: 500, error: 'Failed to upload file' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
   });
 }
@@ -115,10 +113,7 @@ export async function GET(request: NextRequest) {
       });
     } catch (error) {
       console.error('Get file URL error:', error);
-      return NextResponse.json(
-        { success: false, code: 500, error: 'Failed to get file URL' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
   });
 }

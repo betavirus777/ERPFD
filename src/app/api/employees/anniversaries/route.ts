@@ -1,5 +1,6 @@
 
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 
 export async function GET(request: NextRequest) {
@@ -105,9 +106,6 @@ export async function GET(request: NextRequest) {
 
   } catch (error: any) {
     console.error('Anniversaries Error:', error);
-    return NextResponse.json(
-      { success: false, error: 'Failed to fetch anniversaries' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

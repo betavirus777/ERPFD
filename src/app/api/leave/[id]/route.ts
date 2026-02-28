@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 
 // GET single leave application
@@ -54,7 +55,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get leave error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -108,7 +109,7 @@ export async function PUT(
     });
   } catch (error: any) {
     console.error('Update leave error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -149,7 +150,7 @@ export async function DELETE(
     });
   } catch (error: any) {
     console.error('Delete leave error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

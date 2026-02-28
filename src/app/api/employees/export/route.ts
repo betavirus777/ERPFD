@@ -3,11 +3,16 @@ import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 import { apiResponse, apiError, APIError } from '@/lib/api-response';
 import { HttpStatus } from '@/lib/constants';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
     try {
         const user = await getUserFromRequest(request);
         if (!user) throw APIError.unauthorized();
+
+        if (!(await hasPermission(user, PERMISSIONS.REPORTS_EXPORT))) {
+            throw APIError.forbidden('You do not have permission to export employee data');
+        }
 
         // Fetch all employees with comprehensive related data
         const employees = await prisma.employeeOnboarding.findMany({

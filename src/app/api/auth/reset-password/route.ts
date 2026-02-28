@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { hashPassword } from '@/lib/auth';
 import { sendEmail, emailTemplates, logEmail } from '@/lib/email';
@@ -131,9 +132,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Reset password error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

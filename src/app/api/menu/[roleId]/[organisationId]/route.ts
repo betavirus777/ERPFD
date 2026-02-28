@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 
 // Get menu items for a role
@@ -90,9 +91,6 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Menu fetch error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch menu' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

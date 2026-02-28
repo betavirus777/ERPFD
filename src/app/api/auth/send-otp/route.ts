@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { generateOTP, storeOTP } from '@/lib/auth';
 import { sendEmail, emailTemplates, logEmail } from '@/lib/email';
@@ -97,10 +98,7 @@ export async function POST(request: NextRequest) {
     );
 
     if (!emailResult.success) {
-      return NextResponse.json(
-        { success: false, code: 500, error: 'Failed to send OTP. Please try again later.' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
 
     return NextResponse.json({ 
@@ -110,9 +108,6 @@ export async function POST(request: NextRequest) {
     });
   } catch (error) {
     console.error('Send OTP error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: 'Internal server error' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

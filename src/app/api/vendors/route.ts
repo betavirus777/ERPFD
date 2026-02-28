@@ -97,10 +97,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Vendors list error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch vendors' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
@@ -173,9 +170,6 @@ export async function POST(request: NextRequest) {
     }, { status: 201 });
   } catch (error: any) {
     console.error('Create vendor error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to create vendor' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }

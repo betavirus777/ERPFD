@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import { hasPermission, isAdmin, PERMISSIONS } from '@/lib/permissions';
@@ -47,10 +48,7 @@ export async function GET(request: NextRequest) {
       });
     } catch (error: any) {
       console.error('Roles fetch error:', error);
-      return NextResponse.json(
-        { success: false, code: 500, error: error.message || 'Failed to fetch roles' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
   });
 }
@@ -97,10 +95,7 @@ export async function POST(request: NextRequest) {
       });
     } catch (error: any) {
       console.error('Role creation error:', error);
-      return NextResponse.json(
-        { success: false, code: 500, error: error.message || 'Failed to create role' },
-        { status: 500 }
-      );
+      return apiError(error);
     }
   });
 }

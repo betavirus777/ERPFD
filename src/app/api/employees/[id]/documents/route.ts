@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 
@@ -66,7 +67,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get documents error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -144,7 +145,7 @@ export async function POST(
     }
   } catch (error: any) {
     console.error('Save document error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -169,7 +170,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Document deleted successfully' });
   } catch (error: any) {
     console.error('Delete document error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

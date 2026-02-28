@@ -1,10 +1,19 @@
 import { NextRequest } from 'next/server';
 import prisma from '@/lib/db';
-import { apiResponse, apiError } from '@/lib/api-response';
+import { apiResponse, apiError, APIError } from '@/lib/api-response';
 import { HttpStatus } from '@/lib/constants';
+import { getUserFromRequest } from '@/lib/auth';
+import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 
 export async function GET(request: NextRequest) {
     try {
+        const user = await getUserFromRequest(request);
+        if (!user) throw APIError.unauthorized();
+
+        if (!(await hasPermission(user, PERMISSIONS.REPORTS_VIEW))) {
+            throw APIError.forbidden('You do not have permission to view reports');
+        }
+
         const { searchParams } = new URL(request.url);
         const search = searchParams.get('search') || '';
 

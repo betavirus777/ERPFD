@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
+import { apiError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
 
@@ -45,7 +46,7 @@ export async function GET(
     });
   } catch (error: any) {
     console.error('Get emergency contacts error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -97,7 +98,7 @@ export async function POST(
     }
   } catch (error: any) {
     console.error('Save contact error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 
@@ -122,7 +123,7 @@ export async function DELETE(
     return NextResponse.json({ success: true, message: 'Contact deleted successfully' });
   } catch (error: any) {
     console.error('Delete contact error:', error);
-    return NextResponse.json({ success: false, error: error.message }, { status: 500 });
+    return apiError(error);
   }
 }
 

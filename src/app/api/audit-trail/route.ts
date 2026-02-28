@@ -101,10 +101,7 @@ export async function GET(request: NextRequest) {
     });
   } catch (error: any) {
     console.error('Get audit trail error:', error);
-    return NextResponse.json(
-      { success: false, code: 500, error: error.message || 'Failed to fetch audit logs' },
-      { status: 500 }
-    );
+    return apiError(error);
   }
 }
 
