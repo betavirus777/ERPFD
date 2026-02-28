@@ -5,14 +5,34 @@ import { MainLayout } from '@/components/layout/MainLayout'
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Badge } from '@/components/ui/badge'
-import { Loader2, Download, FileSpreadsheet, Users, CheckCircle } from 'lucide-react'
+import { Loader2, Download, FileSpreadsheet, Users, CheckCircle, ShieldX } from 'lucide-react'
 import * as XLSX from 'xlsx'
+import { usePermission, PERMISSIONS } from '@/hooks/usePermission'
 
 export default function EmployeeExportPage() {
+    const { can, user } = usePermission()
     const [loading, setLoading] = useState(false)
     const [success, setSuccess] = useState(false)
     const [error, setError] = useState('')
     const [stats, setStats] = useState({ total: 0 })
+
+    // Permission gate - show access denied for users without export permission
+    if (user && !can(PERMISSIONS.REPORTS_EXPORT)) {
+        return (
+            <MainLayout>
+                <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-4">
+                    <div className="p-5 rounded-full bg-red-100 dark:bg-red-900/20">
+                        <ShieldX className="w-12 h-12 text-red-500" />
+                    </div>
+                    <h2 className="text-xl font-semibold text-gray-800 dark:text-gray-100">Access Denied</h2>
+                    <p className="text-gray-500 text-center max-w-sm">
+                        You don&apos;t have permission to export employee data. Contact your administrator if you need access.
+                    </p>
+                </div>
+            </MainLayout>
+        )
+    }
+
 
     const handleExport = async () => {
         try {
@@ -23,6 +43,10 @@ export default function EmployeeExportPage() {
             // Fetch export data
             const response = await fetch('/api/employees/export')
             const result = await response.json()
+
+            if (response.status === 403) {
+                throw new Error('You do not have permission to export employee data')
+            }
 
             if (!result.success) {
                 throw new Error(result.error || 'Failed to fetch data')
