@@ -68,7 +68,7 @@ export default function MasterSettingsPage() {
 
   useEffect(() => {
     if (!can(PERMISSIONS.MASTER_VIEW) && !canManageMasters()) {
-      router.push('/dashboard')
+      router.push('/')
     }
   }, [])
 

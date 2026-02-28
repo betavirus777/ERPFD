@@ -59,7 +59,7 @@ export default function SetPasswordPage() {
                     description: "Your account is now secured. Redirecting...",
                 })
                 setTimeout(() => {
-                    router.push('/dashboard')
+                    router.push('/')
                 }, 1500)
             } else {
                 setError(response.data.error || 'Failed to set password')

@@ -64,7 +64,7 @@ export default function LoginPage() {
           router.push('/verify-2fa')
         } else {
           login(userData, userData.token)
-          router.push('/dashboard')
+          router.push('/')
         }
       } else {
         setError(result.error || 'Login failed')
@@ -116,7 +116,7 @@ export default function LoginPage() {
           return
         }
         login(result.data, result.data.token)
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setError(result.error || 'Invalid OTP')
       }

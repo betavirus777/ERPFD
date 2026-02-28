@@ -23,7 +23,7 @@ type VerifyFormData = z.infer<typeof verifySchema>
 export default function Verify2FAPage() {
   const router = useRouter()
   const { qrCode, secretKey, tempUserData, complete2FA, logout } = useAuthStore()
-  
+
   const [isLoading, setIsLoading] = useState(false)
   const [error, setError] = useState('')
 
@@ -47,17 +47,17 @@ export default function Verify2FAPage() {
 
     setIsLoading(true)
     setError('')
-    
+
     try {
       const response = await authAPI.verifyBarCode({
         google2fasecret: secretKey,
         emp_id: tempUserData.id as string,
         code: data.code,
       })
-      
+
       if (response.data.success) {
         complete2FA()
-        router.push('/dashboard')
+        router.push('/')
       } else {
         setError(response.data.error || 'Invalid verification code')
       }
@@ -94,14 +94,14 @@ export default function Verify2FAPage() {
           <div>
             <CardTitle className="text-2xl font-bold text-white">Two-Factor Authentication</CardTitle>
             <CardDescription className="text-slate-400">
-              {qrCode 
+              {qrCode
                 ? 'Scan the QR code with your authenticator app, then enter the code below'
                 : 'Enter the verification code from your authenticator app'
               }
             </CardDescription>
           </div>
         </CardHeader>
-        
+
         <CardContent className="space-y-6">
           {error && (
             <div className="p-4 rounded-lg bg-red-500/10 border border-red-500/20 text-red-400 text-sm">
@@ -112,9 +112,9 @@ export default function Verify2FAPage() {
           {qrCode && (
             <div className="flex flex-col items-center space-y-4">
               <div className="p-4 bg-white rounded-xl">
-                <Image 
-                  src={qrCode} 
-                  alt="QR Code for 2FA" 
+                <Image
+                  src={qrCode}
+                  alt="QR Code for 2FA"
                   width={200}
                   height={200}
                   className="w-48 h-48"
@@ -158,9 +158,9 @@ export default function Verify2FAPage() {
               >
                 Cancel
               </Button>
-              <Button 
-                type="submit" 
-                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700" 
+              <Button
+                type="submit"
+                className="flex-1 bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700"
                 disabled={isLoading}
               >
                 {isLoading ? (

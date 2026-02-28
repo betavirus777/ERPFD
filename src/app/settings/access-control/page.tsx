@@ -78,7 +78,7 @@ export default function AccessControlPage() {
 
   useEffect(() => {
     if (!can(PERMISSIONS.MASTER_EDIT)) {
-      router.push('/dashboard')
+      router.push('/')
       return
     }
     fetchRoles()
