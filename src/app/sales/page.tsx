@@ -44,8 +44,8 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import axios from 'axios'
-import { 
-  Receipt, Search, MoreHorizontal, Pencil, Trash2, Eye, Plus, 
+import {
+  Receipt, Search, MoreHorizontal, Pencil, Trash2, Eye, Plus,
   Loader2, RefreshCw, DollarSign, Building2, AlertCircle, CheckCircle, FileText, Send
 } from 'lucide-react'
 import Link from 'next/link'
@@ -97,7 +97,7 @@ export default function SalesPage() {
 
   // Filters
   const [search, setSearch] = useState('')
-  const [clientFilter, setClientFilter] = useState('')
+  const [clientFilter, setClientFilter] = useState('all')
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
   const [total, setTotal] = useState(0)
@@ -126,7 +126,7 @@ export default function SalesPage() {
       setLoading(true)
       const params: any = { page, limit: 10 }
       if (search) params.search = search
-      if (clientFilter) params.client_id = clientFilter
+      if (clientFilter && clientFilter !== 'all') params.client_id = clientFilter
 
       const response = await axios.get('/api/sales', { params })
       if (response.data?.data) {
@@ -377,11 +377,11 @@ export default function SalesPage() {
               <Select value={clientFilter} onValueChange={setClientFilter}>
                 <SelectTrigger className="w-48"><SelectValue placeholder="All Clients" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="">All Clients</SelectItem>
+                  <SelectItem value="all">All Clients</SelectItem>
                   {clients.map(c => <SelectItem key={c.id} value={String(c.id)}>{c.company_name}</SelectItem>)}
                 </SelectContent>
               </Select>
-              <Button variant="outline" onClick={() => { setSearch(''); setClientFilter(''); }}>
+              <Button variant="outline" onClick={() => { setSearch(''); setClientFilter('all'); }}>
                 <RefreshCw className="w-4 h-4 mr-2" />Reset
               </Button>
             </div>

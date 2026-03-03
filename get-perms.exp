@@ -1,0 +1,14 @@
+#!/usr/bin/expect -f
+set timeout 60
+spawn ssh -o StrictHostKeyChecking=no hruser@hrerpfe1.uaenorth.cloudapp.azure.com
+expect "password:"
+send "B@#77NZf7Y131QOiE\r"
+expect "$ "
+send "export NVM_DIR=\"/home/hruser/.nvm\" && . \"/home/hruser/.nvm/nvm.sh\"\r"
+expect "$ "
+send "cd /var/www/hrms-next\r"
+expect "$ "
+send "npx tsx check-db.ts\r"
+expect "$ "
+send "exit\r"
+expect eof

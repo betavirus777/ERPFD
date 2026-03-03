@@ -105,6 +105,8 @@ export async function hasPermission(
     permissionName: string
 ): Promise<boolean> {
 
+    if (user.roleId === ROLES.SUPER_ADMIN) return true;
+
     try {
         // Query database for user's permissions through their role
         const permission = await prisma.rolePermission.findFirst({
@@ -136,6 +138,8 @@ export async function hasAnyPermission(
     user: JWTPayload,
     permissions: string[]
 ): Promise<boolean> {
+
+    if (user.roleId === ROLES.SUPER_ADMIN) return true;
 
     for (const perm of permissions) {
         if (await hasPermission(user, perm)) {

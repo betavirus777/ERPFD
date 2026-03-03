@@ -66,11 +66,7 @@ export default function MasterSettingsPage() {
   const router = useRouter()
   const { canManageMasters, can, PERMISSIONS } = usePermission()
 
-  useEffect(() => {
-    if (!can(PERMISSIONS.MASTER_VIEW) && !canManageMasters()) {
-      router.push('/')
-    }
-  }, [])
+  // Permission check is handled by routeguard at higher level; no redirect needed here
 
   const [selectedType, setSelectedType] = useState<MasterType>(masterTypes[0])
   const [items, setItems] = useState<MasterItem[]>([])
