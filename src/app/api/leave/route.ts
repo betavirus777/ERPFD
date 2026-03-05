@@ -163,10 +163,6 @@ export async function POST(request: NextRequest) {
       throw APIError.unauthorized();
     }
 
-    if (!(await hasPermission(user, PERMISSIONS.LEAVE_APPLY))) {
-      throw APIError.forbidden('You do not have permission to apply for leave');
-    }
-
     const body = await request.json();
 
     const {
