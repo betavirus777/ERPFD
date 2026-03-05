@@ -211,6 +211,15 @@ export async function PUT(
       );
     }
 
+    // --- Auth check ---
+    const user = await getUserFromRequest(request);
+    if (!user) {
+      return NextResponse.json({ success: false, code: 401, error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const canEditAll = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT);
+
+    // Resolve the employee's UID to compare with the calling user
     const existingEmployee = await prisma.employeeOnboarding.findFirst({
       where: { id: employeeId, deleted_at: null },
     });
@@ -219,6 +228,17 @@ export async function PUT(
       return NextResponse.json(
         { success: false, code: 404, error: 'Employee not found' },
         { status: 404 }
+      );
+    }
+
+    const isSelf = user.employeeUid === existingEmployee.uid;
+
+    // Employees can only update their own safe personal fields.
+    // Admins (EMPLOYEE_EDIT) can update any employee fully.
+    if (!canEditAll && !isSelf) {
+      return NextResponse.json(
+        { success: false, code: 403, error: 'Forbidden' },
+        { status: 403 }
       );
     }
 
@@ -245,13 +265,21 @@ export async function PUT(
       updated_at: new Date(),
     };
 
-    const allowedFields = [
+    // Fields a regular employee is allowed to update on their own profile
+    const selfAllowedFields = [
+      'phone_number', 'personal_email', 'temp_address', 'permanent_address', 'employee_photo',
+    ];
+
+    // Full field list — only for users with EMPLOYEE_EDIT permission
+    const adminAllowedFields = [
       'first_name', 'last_name', 'email', 'personal_email', 'phone_number',
       'dob', 'doj', 'date_of_birth', 'employee_type', 'nationality', 'visa_type',
-      'role_master_id', 'designation_master_id', 'department', 'status', 
+      'role_master_id', 'designation_master_id', 'department', 'status',
       'permanent_address', 'current_address', 'temp_address', 'employee_photo', 'engagement_method',
       'status_master_id', 'employee_code', 'vendor_id', 'reporting_to'
     ];
+
+    const allowedFields = canEditAll ? adminAllowedFields : selfAllowedFields;
 
     for (const field of allowedFields) {
       if (body[field] !== undefined) {
@@ -275,8 +303,9 @@ export async function PUT(
       data: updateData,
     });
 
-    // Handle bank details
-    if (body.bankDetails) {
+
+    // Handle bank details — admin only via PUT
+    if (canEditAll && body.bankDetails) {
       const bankData = body.bankDetails;
       if (bankData.id) {
         await prisma.employee_bank_details.update({
@@ -360,8 +389,8 @@ export async function PUT(
       }
     }
 
-    // Handle documents
-    if (body.documents) {
+    // Handle documents — admin only via PUT
+    if (canEditAll && body.documents) {
       for (const doc of body.documents) {
         if (doc.id) {
           await prisma.employee_onboard_document.update({
@@ -392,8 +421,8 @@ export async function PUT(
       }
     }
 
-    // Handle experience
-    if (body.experience) {
+    // Handle experience — admin only via PUT
+    if (canEditAll && body.experience) {
       for (const exp of body.experience) {
         if (exp.id) {
           await prisma.employeeExperience.update({
@@ -454,8 +483,8 @@ export async function PUT(
       }
     }
 
-    // Handle salary details
-    if (body.salaryDetails) {
+    // Handle salary details — admin only via PUT
+    if (canEditAll && body.salaryDetails) {
       for (const salary of body.salaryDetails) {
         if (salary.id && salary.allowance_type_id) {
           await prisma.employeeSalaryDetails.update({

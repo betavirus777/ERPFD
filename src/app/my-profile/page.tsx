@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react'
 import { MainLayout } from '@/components/layout/MainLayout'
-import { EmployeeDetailView } from '@/components/employees/EmployeeDetailView'
+import { MyProfileView } from '@/components/employees/MyProfileView'
 import { Loader2, AlertTriangle } from 'lucide-react'
 import { authAPI } from '@/lib/api'
 import { Button } from '@/components/ui/button'
@@ -92,5 +92,5 @@ export default function MyProfilePage() {
         )
     }
 
-    return <EmployeeDetailView empId={userData.employeeId} />
+    return <MyProfileView empId={userData.employeeId} />
 }

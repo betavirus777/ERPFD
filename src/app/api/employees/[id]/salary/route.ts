@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { apiError, APIError } from '@/lib/api-response';
 import prisma from '@/lib/db';
 import { getUserFromRequest } from '@/lib/auth';
-import { PERMISSIONS, authorizeEmployeeAccess } from '@/lib/permissions';
+import { PERMISSIONS, hasPermission, authorizeEmployeeAccess } from '@/lib/permissions';
 
 // Get salary details
 export async function GET(
@@ -54,7 +54,7 @@ export async function GET(
   }
 }
 
-// Add/Update salary detail
+// Add/Update salary detail — admin only
 export async function POST(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -66,6 +66,14 @@ export async function POST(
 
     if (isNaN(employeeId)) {
       return NextResponse.json({ success: false, error: 'Invalid employee ID' }, { status: 400 });
+    }
+
+    const user = await getUserFromRequest(request);
+    if (!user) return NextResponse.json({ success: false, error: 'Unauthorized' }, { status: 401 });
+
+    const canEdit = await hasPermission(user, PERMISSIONS.EMPLOYEE_EDIT);
+    if (!canEdit) {
+      return NextResponse.json({ success: false, code: 403, error: 'Forbidden - Only admins can manage salary details' }, { status: 403 });
     }
 
     // Get allowance type and currency info for response
