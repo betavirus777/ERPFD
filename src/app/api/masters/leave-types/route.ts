@@ -4,19 +4,10 @@ import prisma from '@/lib/db';
 import { withAuth } from '@/lib/auth';
 import { hasPermission, PERMISSIONS } from '@/lib/permissions';
 
-// GET - List leave types
+// GET - List leave types (accessible to all authenticated users)
 export async function GET(request: NextRequest) {
   return withAuth(request, async (user) => {
     try {
-      const hasAccess = await hasPermission(user, PERMISSIONS.MASTER_VIEW)
-
-      if (!hasAccess) {
-        return NextResponse.json(
-          { success: false, code: 403, error: 'Forbidden' },
-          { status: 403 }
-        )
-      }
-
       const leaveTypes = await prisma.leaveMaster.findMany({
         where: { status: true, deleted_at: null },
         orderBy: { leave_type: 'asc' },
